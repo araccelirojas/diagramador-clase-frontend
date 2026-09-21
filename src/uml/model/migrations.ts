@@ -14,7 +14,85 @@ export type RawDocument = Record<string, unknown>
 /** Transforms a document of version N into one of version N + 1. */
 export type Migration = (doc: RawDocument) => RawDocument
 
-const MIGRATIONS: Record<number, Migration> = {}
+/**
+ * 1 -> 2: nodes gained `associationId`, the link an association class holds to
+ * the relation it belongs to. Every node saved before this is an ordinary one,
+ * so the field is simply null.
+ */
+const migrateNodesToAssociationId: Migration = (doc) => {
+  const nodes = doc.nodes
+
+  if (typeof nodes !== 'object' || nodes === null || Array.isArray(nodes)) {
+    // Malformed: leave it be and let zod produce the readable error (§10.5).
+    return { ...doc, schemaVersion: 2 }
+  }
+
+  const migrated: Record<string, unknown> = {}
+
+  for (const [id, node] of Object.entries(nodes as Record<string, unknown>)) {
+    migrated[id] =
+      typeof node === 'object' && node !== null && !Array.isArray(node)
+        ? { associationId: null, ...(node as Record<string, unknown>) }
+        : node
+  }
+
+  return { ...doc, schemaVersion: 2, nodes: migrated }
+}
+
+/**
+ * 2 -> 3: las propiedades ganaron `isId`, el modificador `{id}` de UML 2.5.
+ *
+ * Todo lo guardado antes se exportaba con una clave técnica impuesta por el generador, así
+ * que ninguna propiedad era la identidad: el valor correcto es false en todas. Quien quiera
+ * una clave natural la marca en el diagrama.
+ */
+const migratePropertiesToIsId: Migration = (doc) => {
+  const nodes = doc.nodes
+
+  if (typeof nodes !== 'object' || nodes === null || Array.isArray(nodes)) {
+    return { ...doc, schemaVersion: 3 }
+  }
+
+  const migrated: Record<string, unknown> = {}
+
+  for (const [id, node] of Object.entries(nodes as Record<string, unknown>)) {
+    if (typeof node !== 'object' || node === null || Array.isArray(node)) {
+      migrated[id] = node
+      continue
+    }
+
+    const nodo = node as Record<string, unknown>
+    const compartimentos = nodo.compartments
+
+    if (typeof compartimentos !== 'object' || compartimentos === null) {
+      migrated[id] = nodo
+      continue
+    }
+
+    const nuevos: Record<string, unknown> = {}
+
+    for (const [clave, miembros] of Object.entries(compartimentos as Record<string, unknown>)) {
+      nuevos[clave] = Array.isArray(miembros)
+        ? miembros.map((miembro) =>
+            typeof miembro === 'object' &&
+            miembro !== null &&
+            (miembro as { kind?: unknown }).kind === 'property'
+              ? { isId: false, ...(miembro as Record<string, unknown>) }
+              : miembro,
+          )
+        : miembros
+    }
+
+    migrated[id] = { ...nodo, compartments: nuevos }
+  }
+
+  return { ...doc, schemaVersion: 3, nodes: migrated }
+}
+
+const MIGRATIONS: Record<number, Migration> = {
+  1: migrateNodesToAssociationId,
+  2: migratePropertiesToIsId,
+}
 
 export class DocumentVersionError extends Error {
   override name = 'DocumentVersionError'

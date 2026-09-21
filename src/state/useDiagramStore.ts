@@ -83,6 +83,53 @@ function pruneSelection(doc: UmlDocument, selection: Selection): Selection {
   return sameNodes && sameEdges ? selection : { nodes, edges }
 }
 
+/**
+ * What left the store and has to reach the other people in the room (§6.2).
+ *
+ * A `command` is the cheap case and covers almost everything: moving a box,
+ * renaming an attribute, adding a relation. A `document` is the wholesale one —
+ * undo, redo and import replace the whole thing rather than applying a command,
+ * so there is nothing small to send.
+ */
+export type StoreChange =
+  | { kind: 'command'; command: Command; options: DispatchOptions }
+  | { kind: 'document'; doc: UmlDocument }
+
+type StoreChangeListener = (change: StoreChange) => void
+
+const changeListeners = new Set<StoreChangeListener>()
+
+/**
+ * True while a change that ARRIVED from the socket is being applied, so it is
+ * not sent straight back out. Without this two clients would bounce the same
+ * command between them forever.
+ */
+let applyingRemote = false
+
+/** Subscribes to changes that actually altered the document. */
+export function onStoreChange(listener: StoreChangeListener): () => void {
+  changeListeners.add(listener)
+  return () => {
+    changeListeners.delete(listener)
+  }
+}
+
+/** Applies somebody else's change without echoing it back to them. */
+export function applyRemote(apply: () => void): void {
+  applyingRemote = true
+  try {
+    apply()
+  } finally {
+    applyingRemote = false
+  }
+}
+
+function notify(change: StoreChange): void {
+  if (applyingRemote) return
+
+  for (const listener of changeListeners) listener(change)
+}
+
 export const useDiagramStore = create<DiagramState>()(
   immer((set, get) => ({
     doc: createDocument(),
@@ -121,6 +168,10 @@ export const useDiagramStore = create<DiagramState>()(
         state.isDirty = true
         state.selection = pruneSelection(next, state.selection as Selection)
       })
+
+      // After the change landed, never before: a listener that reads the store
+      // has to see the result, not the state on the way there.
+      notify({ kind: 'command', command, options })
     },
 
     undo: () => {
@@ -138,6 +189,8 @@ export const useDiagramStore = create<DiagramState>()(
         state.isDirty = true
         state.selection = pruneSelection(previous, state.selection as Selection)
       })
+
+      notify({ kind: 'document', doc: previous })
     },
 
     redo: () => {
@@ -155,6 +208,10 @@ export const useDiagramStore = create<DiagramState>()(
         state.isDirty = true
         state.selection = pruneSelection(next, state.selection as Selection)
       })
+
+      // Redo replaces the document instead of applying a command, so there is
+      // nothing small to send: the room gets the whole thing.
+      notify({ kind: 'document', doc: next })
     },
 
     setSelection: (selection) => {
@@ -207,6 +264,8 @@ export const useDiagramStore = create<DiagramState>()(
         state.history = createHistory()
         state.isDirty = options.dirty === true
       })
+
+      notify({ kind: 'document', doc })
     },
   })),
 )

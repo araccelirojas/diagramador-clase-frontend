@@ -8,7 +8,9 @@ import type { ProyectoResumen } from '@/api/types'
 import App from '@/app/App'
 import { documentFromProjectContent } from '@/io/projectContent'
 import { useDiagramStore } from '@/state/useDiagramStore'
+import type { SaveState } from '@/sync/useAutosave'
 import { useAutosave } from '@/sync/useAutosave'
+import { useCollaboration } from '@/sync/useCollaboration'
 
 /**
  * Opens one project: fetches its `contenido`, validates it, pushes it into the
@@ -40,8 +42,33 @@ export function EditorPage() {
    */
   const listo = estado.kind === 'ready' && estado.proyecto.idProyecto === idProyecto
 
+  // One room per project, joined only once this project's document is loaded.
+  const collaboration = useCollaboration(idProyecto ?? '', listo)
+
+  /**
+   * While the room is up it owns the save clock — a single timer for everyone,
+   * not one per person. If the socket never connects or drops, this falls back
+   * to false and the local autosave takes over on its own.
+   */
+  const roomManaged = collaboration.status === 'connected'
+
   // Called before the early returns below, as every hook must be.
-  const { state: saveState, flush } = useAutosave(idProyecto ?? '', listo)
+  const { state: saveState, flush } = useAutosave(idProyecto ?? '', listo, { roomManaged })
+
+  const isDirty = useDiagramStore((state) => state.isDirty)
+
+  /**
+   * What the header shows. In a room the honest signal is the room's own save
+   * report: this client's `isDirty` says nothing about whether the person the
+   * server asked has written yet.
+   */
+  const headerState: SaveState = roomManaged
+    ? collaboration.error !== null
+      ? { kind: 'error', message: collaboration.error }
+      : collaboration.savedAt !== null
+        ? { kind: 'saved', at: collaboration.savedAt }
+        : { kind: 'idle' }
+    : saveState
 
   /**
    * The browser's back arrow and the "Proyectos" button are both in-app
@@ -170,5 +197,13 @@ export function EditorPage() {
     )
   }
 
-  return <App proyecto={estado.proyecto} saveState={saveState} />
+  return (
+    <App
+      proyecto={estado.proyecto}
+      saveState={headerState}
+      dirty={!roomManaged && isDirty}
+      collaboration={collaboration}
+      flush={flush}
+    />
+  )
 }

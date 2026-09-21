@@ -1,6 +1,7 @@
 import { CheckboxField } from '@/inspector/fields/CheckboxField'
 import { MoreOptions } from '@/inspector/fields/MoreOptions'
 import { TextField } from '@/inspector/fields/TextField'
+import { TypeField } from '@/inspector/fields/TypeField'
 import { VisibilityField } from '@/inspector/fields/VisibilityField'
 import { ParameterList } from '@/inspector/members/ParameterList'
 import type { Operation } from '@/uml/model/types'
@@ -28,13 +29,10 @@ export function OperationEditor({
         onCommit={(name) => onPatch({ name: name ?? '' })}
         mono
       />
-      <TextField
+      <TypeField
         label="Retorno"
         value={operation.returnType}
-        onCommit={(returnType) => onPatch({ returnType })}
-        placeholder="void, boolean…"
-        nullable
-        mono
+        onChange={(returnType) => onPatch({ returnType })}
       />
       <VisibilityField
         value={operation.visibility}

@@ -1,5 +1,6 @@
 import type { Edge, Node } from '@xyflow/react'
 
+import { SEPARACION_PARALELAS } from '@/canvas/edges/geometry'
 import type { DiagramState } from '@/state/useDiagramStore'
 import type { UmlDocument, UmlEdge, UmlNode } from '@/uml/model/types'
 
@@ -12,7 +13,11 @@ import type { UmlDocument, UmlEdge, UmlNode } from '@/uml/model/types'
  */
 
 export type UmlNodeData = { node: UmlNode }
-export type UmlEdgeData = { edge: UmlEdge }
+export type UmlEdgeData = {
+  edge: UmlEdge
+  /** Cuánto apartarla de las demás que unen su mismo par de clases. Ver `separarParalelas`. */
+  separacion: number
+}
 
 export type UmlFlowNode = Node<UmlNodeData>
 export type UmlFlowEdge = Edge<UmlEdgeData>
@@ -34,15 +39,62 @@ function toFlowNode(node: UmlNode, selected: boolean): UmlFlowNode {
   }
 }
 
-function toFlowEdge(edge: UmlEdge, selected: boolean): UmlFlowEdge {
+function toFlowEdge(edge: UmlEdge, selected: boolean, separacion: number): UmlFlowEdge {
   return {
     id: edge.id,
     type: edge.kind,
     source: edge.source,
     target: edge.target,
-    data: { edge },
+    data: { edge, separacion },
     selected,
   }
+}
+
+/**
+ * Reparte las relaciones que unen el MISMO par de clases para que no se dibujen una encima
+ * de otra.
+ *
+ * Dos clases con dos asociaciones distintas —"Start" y "Goal" entre Aeropuerto y Vuelo— dan
+ * dos líneas idénticas punto por punto: parecen una sola y las multiplicidades se amontonan.
+ * Aquí se decide cuánto se aparta cada una; la geometría se encarga de aplicarlo.
+ *
+ * El par se toma SIN dirección: A→B y B→A también coinciden sobre el papel. Como el sentido
+ * de "apartarse" lo fija el eje origen→destino, a la relación que va al revés se le invierte
+ * el signo, o las dos acabarían del mismo lado.
+ */
+function separarParalelas(edges: readonly UmlEdge[]): Map<string, number> {
+  const grupos = new Map<string, UmlEdge[]>()
+
+  for (const edge of edges) {
+    const clave = [edge.source, edge.target].sort().join('|')
+    const grupo = grupos.get(clave)
+
+    if (grupo) grupo.push(edge)
+    else grupos.set(clave, [edge])
+  }
+
+  const separaciones = new Map<string, number>()
+
+  for (const grupo of grupos.values()) {
+    // Una sola relación entre ese par: se queda donde siempre, sin desplazar.
+    if (grupo.length === 1) {
+      separaciones.set(grupo[0]!.id, 0)
+      continue
+    }
+
+    grupo.forEach((edge, indice) => {
+      if (edge.source === edge.target) {
+        // Un bucle no se aparta de lado: se agranda, o quedaría montado sobre el anterior.
+        separaciones.set(edge.id, indice * SEPARACION_PARALELAS)
+        return
+      }
+
+      const centrado = (indice - (grupo.length - 1) / 2) * SEPARACION_PARALELAS
+      separaciones.set(edge.id, edge.source > edge.target ? -centrado : centrado)
+    })
+  }
+
+  return separaciones
 }
 
 /** One-entry cache: there is a single store, so this is enough and stays honest. */
@@ -87,9 +139,14 @@ export function selectFlowEdges(state: DiagramState): UmlFlowEdge[] {
   }
 
   const selected = new Set(state.selection.edges)
-  const value = Object.values(state.doc.edges)
-    .filter((edge) => edge.diagramId === state.activeDiagramId)
-    .map((edge) => toFlowEdge(edge, selected.has(edge.id)))
+  const delDiagrama = Object.values(state.doc.edges).filter(
+    (edge) => edge.diagramId === state.activeDiagramId,
+  )
+
+  const separaciones = separarParalelas(delDiagrama)
+  const value = delDiagrama.map((edge) =>
+    toFlowEdge(edge, selected.has(edge.id), separaciones.get(edge.id) ?? 0),
+  )
 
   edgeCache = { doc: state.doc, diagramId: state.activeDiagramId, selectionKey, value }
   return value

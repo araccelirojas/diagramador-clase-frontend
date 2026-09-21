@@ -47,3 +47,29 @@ export type ContenidoProyecto = {
   idProyecto: string
   contenido: unknown
 }
+
+/** `EstadoInvitacion` in the Prisma schema. */
+export type EstadoInvitacion = 'PENDIENTE' | 'ACEPTADA' | 'RECHAZADA'
+
+/**
+ * `GET /invitaciones` returns both directions at once: the ones addressed to
+ * me, and the ones issued on projects I own. They are told apart by comparing
+ * `idUsuario` (the recipient) and `proyecto.idUsuario` (the owner) against the
+ * session user — the backend cannot be asked for one side only.
+ */
+export type Invitacion = {
+  idInvitacion: string
+  estado: EstadoInvitacion
+  /** ISO timestamp. */
+  fechaInvitacion: string
+  /** The recipient. */
+  idUsuario: string
+  usuario: UsuarioResumen
+  idProyecto: string
+  proyecto: {
+    idProyecto: string
+    nombre: string
+    /** The owner, i.e. whoever sent the invitation. */
+    idUsuario: string
+  }
+}

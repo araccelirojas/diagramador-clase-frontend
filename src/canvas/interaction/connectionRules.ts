@@ -13,9 +13,6 @@ import { RELATIONS } from '@/uml/registry'
 
 export type ConnectionCheck = { ok: true } | { ok: false; reason: string }
 
-const SELF_REASON =
-  'Todavía no se dibujan las relaciones de un elemento consigo mismo (auto-asociación).'
-
 export function checkConnection(
   doc: UmlDocument,
   relationKind: string,
@@ -26,8 +23,9 @@ export function checkConnection(
     return { ok: false, reason: 'Falta uno de los extremos de la relación.' }
   }
 
-  // Self-associations are legal UML but need a loop path we do not draw yet.
-  if (sourceId === targetId) return { ok: false, reason: SELF_REASON }
+  // Una auto-asociación es UML legal y se dibuja como un bucle. No se rechaza aquí:
+  // cada spec decide (generalización y realización sí la rechazan, un objeto no puede
+  // heredar de sí mismo ni implementarse a sí mismo).
 
   const source = doc.nodes[sourceId]
   const target = doc.nodes[targetId]

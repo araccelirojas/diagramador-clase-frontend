@@ -78,6 +78,15 @@ export type ClassifierSpec = {
   compartments: CompartmentSpec[]
 
   canBeAbstract: boolean
+
+  /**
+   * Instances of this classifier always belong to a relation, so it has no
+   * palette tool of its own: the RELATION that declares `classifierKind`
+   * creates it. The palette reads this flag instead of asking "is it the
+   * association class?" by kind.
+   */
+  attachedToRelation?: boolean
+
   variants?: ClassifierVariant[]
   canContain?: (childKind: string) => boolean
   validate?: (node: UmlNode, doc: UmlDocument) => Issue[]
@@ -129,6 +138,13 @@ export type RelationSpec = {
    */
   connectionHint?: string
   validate?: (edge: UmlEdge, doc: UmlDocument) => Issue[]
+
+  /**
+   * Drawing this relation also creates a classifier of this kind, attached to
+   * it: that is how the association class is born from joining two classes,
+   * in one gesture and one undo step.
+   */
+  classifierKind?: string
 
   /** How this maps onto the strict UML 2.5 metamodel, for the future exporter. */
   metamodelNote?: string

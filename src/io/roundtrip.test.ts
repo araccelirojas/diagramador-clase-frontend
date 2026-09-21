@@ -67,7 +67,7 @@ describe('round trip', () => {
     expect(toJson(twice.doc, NOW)).toBe(json)
   })
 
-  it('keeps the six relations and both classifiers', () => {
+  it('keeps the six relations and all three classifiers', () => {
     const doc = createFullSampleDocument()
     const result = deserializeDocument(toJson(doc, NOW))
 
@@ -77,14 +77,30 @@ describe('round trip', () => {
     expect(Object.values(result.doc.edges).map((edge) => edge.kind).sort()).toEqual([
       'aggregation',
       'association',
+      'association-class',
       'composition',
       'directed-association',
       'generalization',
       'realization',
     ])
     expect(new Set(Object.values(result.doc.nodes).map((node) => node.kind))).toEqual(
-      new Set(['class', 'interface']),
+      new Set(['class', 'interface', 'association-class']),
     )
+  })
+
+  it('keeps the link between an association class and its relation', () => {
+    const doc = createFullSampleDocument()
+    const result = deserializeDocument(toJson(doc, NOW))
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+
+    const matricula = result.doc.nodes.n_matricula
+
+    // The whole point of schemaVersion 2: without this field surviving, the
+    // box comes back floating and attached to nothing.
+    expect(matricula?.associationId).toBe('e_matricula')
+    expect(result.doc.edges[matricula?.associationId ?? '']).toBeDefined()
   })
 
   it('the reference document raises no warnings', () => {
@@ -168,5 +184,24 @@ describe('fileNameFor', () => {
     const doc = createDocument({ name: 'a/b:c*d?' })
 
     expect(fileNameFor(doc)).toBe('a-b-c-d-.uml.json')
+  })
+})
+
+describe('the {id} modifier survives the round trip', () => {
+  it('keeps exactly one property marked as the identity', () => {
+    const result = deserializeDocument(toJson(createFullSampleDocument(), NOW))
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+
+    const persona = result.doc.nodes.n_persona
+    const marcadas = (persona?.compartments.attributes ?? []).filter(
+      (member) => member.kind === 'property' && member.isId,
+    )
+
+    // Sin este campo el exportador tendría que inventar una clave, que es justo
+    // lo que schemaVersion 3 vino a evitar.
+    expect(marcadas).toHaveLength(1)
+    expect(marcadas[0]?.name).toBe('dni')
   })
 })

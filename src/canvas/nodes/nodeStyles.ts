@@ -18,6 +18,9 @@ export const NODE_BORDER_VALID = 'border-emerald-600 ring-2 ring-emerald-400'
 export const NODE_BORDER_INVALID = 'border-rose-500 ring-2 ring-rose-300'
 export const NODE_BORDER_PENDING = 'border-sky-600 ring-2 ring-sky-300'
 
+/** Lo que el agente de voz acaba de tocar. Dura un par de segundos y se va solo. */
+export const NODE_BORDER_AGENTE = 'border-violet-600 ring-2 ring-violet-400'
+
 export const NODE_HEADER = 'flex flex-col items-center gap-0.5 px-3 py-2'
 
 export const NODE_KEYWORD = 'text-[10px] leading-none text-slate-500'

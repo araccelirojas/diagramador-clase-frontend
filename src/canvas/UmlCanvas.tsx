@@ -15,6 +15,7 @@ import {
 } from '@xyflow/react'
 import { useCallback, useMemo, useState, type MouseEvent } from 'react'
 
+import { AssociationLinks } from '@/canvas/AssociationLinks'
 import { canConnect } from '@/canvas/interaction/connectionRules'
 import { useAddMember } from '@/canvas/interaction/useAddMember'
 import { useCreateClassifier } from '@/canvas/interaction/useCreateClassifier'
@@ -311,6 +312,7 @@ function Canvas() {
         proOptions={{ hideAttribution: true }}
         className="bg-slate-50"
       >
+        <AssociationLinks />
         <Background variant={BackgroundVariant.Dots} gap={GRID_SIZE} size={1} />
         {/*
           * The default node fill is #e2e2e2 on a white panel, which is barely

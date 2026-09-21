@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react'
 import {
   Handle,
   NodeResizer,
@@ -21,7 +22,9 @@ import {
   NODE_KEYWORD,
   NODE_NAME,
   NODE_NAME_ABSTRACT,
+  NODE_BORDER_AGENTE,
 } from '@/canvas/nodes/nodeStyles'
+import { estaResaltado, onResaltado } from '@/voz/resaltado'
 import { renameNode } from '@/state/commands'
 import type { UmlFlowNode } from '@/state/selectors'
 import { useDiagramStore } from '@/state/useDiagramStore'
@@ -75,6 +78,18 @@ export function ClassifierNode({ id, data, selected }: NodeProps<UmlFlowNode>) {
 
   const isValidTarget = isCandidate && canConnect(doc, relationKind, connectionOrigin, id)
 
+  /**
+   * El destello de lo que acaba de tocar el agente de voz.
+   *
+   * Va por debajo de todo lo demas en la cascada: si estás conectando o el nodo está
+   * seleccionado, eso es lo que tenés que ver. El destello solo informa de algo que ya pasó.
+   */
+  const porElAgente = useSyncExternalStore(
+    onResaltado,
+    () => estaResaltado(id),
+    () => false,
+  )
+
   const border = isConnectionSource
     ? NODE_BORDER_PENDING
     : isCandidate
@@ -83,7 +98,9 @@ export function ClassifierNode({ id, data, selected }: NodeProps<UmlFlowNode>) {
         : NODE_BORDER_INVALID
       : selected === true
         ? NODE_BORDER_SELECTED
-        : NODE_BORDER_IDLE
+        : porElAgente
+          ? NODE_BORDER_AGENTE
+          : NODE_BORDER_IDLE
 
   return (
     <>

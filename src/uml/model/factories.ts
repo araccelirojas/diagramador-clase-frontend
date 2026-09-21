@@ -81,6 +81,7 @@ export function createProperty(options: CreatePropertyOptions = {}): Property {
     isStatic: false,
     isDerived: false,
     isReadOnly: false,
+    isId: false,
     isOrdered: false,
     isUnique: true,
     ...rest,
@@ -146,6 +147,8 @@ export type CreateNodeOptions = {
   size?: Size
   z?: number
   parentId?: string | null
+  /** Set only for an association class: the edge it is the class of. */
+  associationId?: string | null
 }
 
 export function createNode(options: CreateNodeOptions): UmlNode {
@@ -166,6 +169,7 @@ export function createNode(options: CreateNodeOptions): UmlNode {
     size: options.size ? { ...options.size } : { ...DEFAULT_NODE_SIZE },
     z: options.z ?? 0,
     parentId: options.parentId ?? null,
+    associationId: options.associationId ?? null,
     compartments,
   }
 }

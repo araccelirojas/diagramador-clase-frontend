@@ -1,3 +1,4 @@
+import { associationClassSpec } from '@/uml/registry/classifiers/associationClass'
 import { classSpec } from '@/uml/registry/classifiers/class'
 import { interfaceSpec } from '@/uml/registry/classifiers/interface'
 import type { ClassifierSpec } from '@/uml/registry/types'
@@ -7,7 +8,7 @@ import type { ClassifierSpec } from '@/uml/registry/types'
  * needs to know it exists: the palette, the node and the inspector read the
  * spec (CLAUDE.md §7.4).
  */
-const SPECS: ClassifierSpec[] = [classSpec, interfaceSpec]
+const SPECS: ClassifierSpec[] = [classSpec, interfaceSpec, associationClassSpec]
 
 export const CLASSIFIERS: Record<string, ClassifierSpec> = Object.fromEntries(
   SPECS.map((spec) => [spec.kind, spec]),

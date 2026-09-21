@@ -104,9 +104,34 @@ describe('realization: only towards an interface (UML 2.5)', () => {
 describe('rules shared by every relation', () => {
   const doc = docWith()
 
-  it('rejects connecting a node to itself', () => {
+  /** Una auto-asociación es UML legal: un empleado que supervisa empleados. */
+  const CONSIGO_MISMO_PERMITIDO = new Set([
+    'association',
+    'directed-association',
+    'aggregation',
+    'composition',
+    'association-class',
+  ])
+
+  it('permite las relaciones de un elemento consigo mismo que UML admite', () => {
+    for (const kind of CONSIGO_MISMO_PERMITIDO) {
+      expect(canConnect(doc, kind, 'n_a', 'n_a'), kind).toBe(true)
+    }
+  })
+
+  it('pero no que algo herede de sí mismo ni se implemente a sí mismo', () => {
     for (const spec of RELATION_LIST) {
+      if (CONSIGO_MISMO_PERMITIDO.has(spec.kind)) continue
+
       expect(canConnect(doc, spec.kind, 'n_a', 'n_a'), spec.kind).toBe(false)
+    }
+  })
+
+  it('cubre todas las relaciones registradas: una nueva tiene que decidir', () => {
+    const decididas = new Set(RELATION_LIST.map((spec) => spec.kind))
+
+    for (const kind of CONSIGO_MISMO_PERMITIDO) {
+      expect(decididas.has(kind), `"${kind}" ya no existe en el registry`).toBe(true)
     }
   })
 

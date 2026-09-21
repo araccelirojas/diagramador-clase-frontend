@@ -1,12 +1,6 @@
 import { BaseEdge, EdgeLabelRenderer, useInternalNode, type EdgeProps } from '@xyflow/react'
 
-import {
-  floatingEndpoints,
-  labelAnchor,
-  midpoint,
-  pathFor,
-  type Rect,
-} from '@/canvas/edges/geometry'
+import { edgeGeometry, labelAnchor, type Rect } from '@/canvas/edges/geometry'
 import { useWaypointDrag } from '@/canvas/edges/useWaypointDrag'
 import { WaypointHandles } from '@/canvas/edges/WaypointHandles'
 import { markerUrl } from '@/canvas/markers/markerIds'
@@ -67,26 +61,47 @@ type EdgeBodyProps = {
   edge: UmlEdgeModel
   sourceRect: Rect
   targetRect: Rect
+  separacion: number
   isSelected: boolean
 }
 
-function EdgeBody({ id, edge, sourceRect, targetRect, isSelected }: EdgeBodyProps) {
+function EdgeBody({ id, edge, sourceRect, targetRect, separacion, isSelected }: EdgeBodyProps) {
   const spec = getRelation(edge.kind)
   const drag = useWaypointDrag(edge)
 
-  const points = floatingEndpoints(sourceRect, targetRect, drag.waypoints)
-  const path = pathFor(edge.routing, points.source, points.target, drag.waypoints)
+  // Endpoints and path in one call: for an orthogonal edge the side it leaves
+  // from and the direction of its first run are the same decision.
+  // Una auto-asociación: los dos extremos son el mismo nodo y se dibuja como bucle.
+  const esBucle = edge.source === edge.target
+  // Con waypoints no se aparta: si la moviste a mano, está donde vos la pusiste.
+  const geometry = edgeGeometry(
+    edge.routing,
+    sourceRect,
+    targetRect,
+    drag.waypoints,
+    esBucle,
+    drag.waypoints.length > 0 ? 0 : separacion,
+  )
+  const points = { source: geometry.source, target: geometry.target }
+  const path = geometry.path
 
   const sourceText = endLabel(edge.ends.source, spec)
   const targetText = endLabel(edge.ends.target, spec)
   const name = nameLabel(edge, spec)
 
-  const sourceAnchor = labelAnchor(points.source, points.target, LABEL_ALONG, -LABEL_SIDE)
-  const targetAnchor = labelAnchor(points.target, points.source, LABEL_ALONG, LABEL_SIDE)
-  // The name sits on the middle bend when there is one, not on a point off the line.
-  const nameAnchor =
-    drag.waypoints[Math.floor((drag.waypoints.length - 1) / 2)] ??
-    midpoint(points.source, points.target)
+  // La etiqueta se orienta por el TRAMO que sale del extremo, no por el extremo contrario.
+  // En un bucle los dos extremos pertenecen a la misma caja, así que apuntar al otro
+  // empujaba la multiplicidad hacia adentro del nodo, que es donde quedaba tapada. De paso,
+  // en un ruteo ortogonal la etiqueta sigue ahora el primer tramo real en vez de la
+  // diagonal hacia un extremo por el que la línea no pasa.
+  const vecinoDelOrigen = geometry.points[1] ?? points.target
+  const vecinoDelDestino = geometry.points[geometry.points.length - 2] ?? points.source
+
+  const sourceAnchor = labelAnchor(points.source, vecinoDelOrigen, LABEL_ALONG, -LABEL_SIDE)
+  const targetAnchor = labelAnchor(points.target, vecinoDelDestino, LABEL_ALONG, LABEL_SIDE)
+  // Halfway ALONG the drawn line, so the name follows the bends instead of
+  // floating at the midpoint of a chord the line never touches.
+  const nameAnchor = geometry.middle
 
   return (
     <>
@@ -149,6 +164,7 @@ export function UmlEdge({ id, source, target, data, selected }: EdgeProps<UmlFlo
       edge={data.edge}
       sourceRect={rectOf(sourceNode)}
       targetRect={rectOf(targetNode)}
+      separacion={data.separacion}
       isSelected={selected === true}
     />
   )

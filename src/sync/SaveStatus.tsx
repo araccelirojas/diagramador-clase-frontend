@@ -1,6 +1,5 @@
 import { AlertTriangle, Check, Cloud, Loader2 } from 'lucide-react'
 
-import { useDiagramStore } from '@/state/useDiagramStore'
 import type { SaveState } from '@/sync/useAutosave'
 
 /**
@@ -11,8 +10,7 @@ import type { SaveState } from '@/sync/useAutosave'
 
 const HORA = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit' })
 
-export function SaveStatus({ state }: { state: SaveState }) {
-  const isDirty = useDiagramStore((store) => store.isDirty)
+export function SaveStatus({ state, dirty }: { state: SaveState; dirty: boolean }) {
 
   if (state.kind === 'error') {
     return (
@@ -37,8 +35,9 @@ export function SaveStatus({ state }: { state: SaveState }) {
   }
 
   // Dirty but not writing yet: the next tick will pick it up, and so will
-  // closing the editor.
-  if (isDirty) {
+  // closing the editor. In a room this is never shown — the room's own save
+  // report is the honest signal there, not this client's flag.
+  if (dirty) {
     return (
       <span className="flex items-center gap-1.5 text-xs text-slate-400" role="status">
         <Cloud className="h-3.5 w-3.5" />

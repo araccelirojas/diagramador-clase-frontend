@@ -33,7 +33,11 @@ Es solo el **frontend**. El backend existe aparte y expone proyectos con un atri
 
 ## 2. Estado actual y alcance
 
-**Fase 1 cerrada. Fase activa: 3 — sesión y proyectos.**
+**Fase 1 cerrada. Fase activa: 3 — sesión, proyectos y los elementos que faltaban.**
+
+**`SCHEMA_VERSION` va por 2.** La 2 agregó `node.associationId` para la clase de
+asociación; `migrations.ts` trae el paso 1 → 2 y los documentos guardados en v1 siguen
+abriendo.
 
 La fase 1 (el diagramador puro, todo en memoria) está completa. Su checklist vive en
 `docs/PHASE-1-CHECKLIST.md`.
@@ -62,7 +66,10 @@ Lo que **sigue prohibido** hasta que se implemente su bloque:
 - **`localStorage` del documento.** El autoguardado va contra el backend, no contra el
   navegador. Un snapshot con formato viejo cacheado en el cliente sigue siendo una fuente
   de bugs fantasma; lo único que se guarda ahí es el token de sesión.
-- **Sockets y colaboración.** Eso es fase 4 y no se adelanta ni "el esqueleto".
+**Fase 4 (sockets) implementada.** Una sala por proyecto, los comandos viajan por el
+socket tal como anticipaba §6.2, y el guardado pasa a tener **un temporizador por sala en
+el servidor** en vez de uno por cliente. Ver `docs/PHASE-3-CHECKLIST.md` §10 y
+`src/sync/useCollaboration.ts`.
 
 Los botones de desarrollo **"Exportar JSON" / "Importar JSON"** se quedan: son el banco de
 pruebas del formato de `contenido`, y el archivo que escriben es byte por byte el objeto
@@ -246,6 +253,14 @@ type UmlNode = {
 
   parentId: string | null;       // paquete contenedor, o null
 
+  // Solo en una clase de asociación: el id de la arista de la que cuelga.
+  // En UML 2.5 una AssociationClass es UN elemento que es a la vez Association
+  // y Class; acá nodos y aristas viven en colecciones separadas, así que se
+  // guarda como nodo que apunta a su arista. El puntero va en el nodo porque el
+  // nodo es la mitad dependiente: una asociación sobrevive a perder su clase,
+  // una clase de asociación no sobrevive a perder su asociación.
+  associationId: string | null;
+
   // Compartimentos indexados por el id que declara la spec del clasificador.
   // Una clase usa 'attributes' y 'operations'; una enum usa 'literals' y 'operations'.
   // Agregar un compartimento nuevo NO requiere cambiar este tipo.
@@ -362,6 +377,9 @@ operación está mal.
 5. `schemaVersion` siempre presente. Al cargar, si es menor que la actual, pasa por
    `migrations.ts`; si es mayor, se rechaza el documento con un mensaje claro en vez de
    intentar abrirlo.
+6. Todo `node.associationId` no nulo referencia una arista existente **del mismo
+   `diagramId`**. Borrar esa arista borra el nodo en cascada: una clase de asociación
+   colgando de nada es un documento corrupto, no uno incompleto.
 
 ---
 
@@ -618,7 +636,14 @@ Si al agregar un elemento tuviste que tocar `ClassifierNode.tsx`, `UmlEdge.tsx` 
 | Interfaz | «interface» | 1 |
 | Enumeración | «enumeration» + compartimento de literales | 2 |
 | Tipo de dato | «datatype» | 2 |
-| Clase de asociación | caja unida a una arista con línea punteada | 3 |
+| Clase de asociación | caja unida a una arista con línea punteada | 3 ✅ |
+
+La clase de asociación es la única entrada del catálogo que vive en **Relaciones** y no en
+Clasificadores: se dibuja uniendo dos clases, y la caja nace con la línea. Su `RelationSpec`
+declara `classifierKind` y su `ClassifierSpec` declara `attachedToRelation`, que es lo que
+lo mantiene fuera de la paleta sin dejar de estar registrado para poder renderizarse.
+Ambas mitades son un solo elemento UML: un solo comando las crea y cada una arrastra a la
+otra al borrarse.
 | Paquete | rectángulo con pestaña, contenedor | 2 |
 | Nota / comentario | rectángulo con esquina doblada + ancla punteada | 2 |
 | Restricción `{...}` | texto sobre elemento o arista | 3 |
@@ -666,6 +691,36 @@ calcula como la intersección de la recta entre centros con el rectángulo del n
 `canvas/edges/geometry.ts`. Así el usuario conecta desde cualquier parte del borde y la
 arista sigue a la caja al moverla, sin handles fijos visibles en las cuatro esquinas.
 
+### Las tres rutas y los puntos de doblez
+
+`edge.routing` es `straight`, `orthogonal` o `bezier`, y el usuario puede doblar cualquiera
+arrastrando un waypoint. **`edgeGeometry()` decide extremos y trazado juntos, en una sola
+llamada**, y esa unión no es un capricho: en una arista ortogonal el lado por el que sale
+la línea *es* la dirección de su primer tramo. Calcularlos por separado fue lo que dejó que
+se contradijeran.
+
+Lo que cada ruta necesita, y lo que costó descubrirlo:
+
+- **`straight`** — polilínea por los waypoints. Extremos por intersección con el rectángulo.
+- **`bezier`** — curva suave que pasa **por** cada waypoint, no cerca: Catmull-Rom
+  convertido a cúbicas. Y los tiradores van en el eje dominante de la arista; ponerlos
+  siempre en horizontal hacía que dos cajas apiladas se abombaran de lado.
+- **`orthogonal`** — el anclaje es **el centro del lado que mira al vecino**, no el punto
+  diagonal, porque un tramo ortogonal tiene que salir perpendicular al borde. Cuando los
+  dos extremos salen por el mismo eje y no están alineados, un solo codo no alcanza: el
+  trazado necesita un rodeo por el medio.
+
+Si agregás una ruta nueva, agregala en `pathFor` y en `pointsAlong`, no en el componente.
+
+**Auto-asociaciones.** Una relación de un elemento consigo mismo es UML legal y se dibuja
+como un **bucle** (`selfLoopPoints`): sale por arriba, rodea la esquina y vuelve a entrar
+por el lado derecho. Los extremos flotantes no sirven ahí —la recta entre dos centros que
+son el mismo punto no tiene dirección— y además el bucle deja los dos extremos separados,
+que es lo que permite poner una multiplicidad distinta en cada uno.
+
+No se rechaza en `connectionRules`: cada spec decide. Generalización y realización sí la
+rechazan, porque nada hereda de sí mismo ni se implementa a sí mismo.
+
 `isValidConnection` consulta el `RelationSpec` activo. Feedback visual inmediato: borde
 verde si la conexión es válida, rojo si no. Ejemplos de reglas: una realización va de un
 clasificador a una interfaz; una generalización no admite ciclos ni auto-referencia.
@@ -678,6 +733,19 @@ clasificador a una interfaz; una generalización no admite ciclos ni auto-refere
   caben en la edición inline (multiplicidades, parámetros, `{ordered}`, navegabilidad).
 - Los cambios del inspector se aplican en `onBlur` o con debounce, no en cada tecla,
   para no llenar el historial.
+
+### El campo de tipo: ofrecer, no vigilar
+
+`TypeField` (atributos, parámetros y retorno) es un selector con tres grupos: los
+primitivos de UML 2.5, los tipos de dato que trae Enterprise Architect de fábrica, y **los
+clasificadores que hay en el documento**, derivados de `doc.nodes`. El catálogo vive en
+`uml/model/dataTypes.ts`.
+
+`type` **sigue siendo un string libre en el modelo** (§5.2) y no se convierte en un enum.
+La opción "Otro…" baja a un input de texto, y un valor que la lista no conoce —`List<Curso>`,
+un tipo de un lenguaje que el editor no conoce, un nombre a medio escribir— se conserva y
+se muestra como la selección actual. Un desplegable que borra en silencio lo que no sabe
+representar es peor que una caja vacía.
 
 ### Atajos
 

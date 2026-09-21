@@ -20,16 +20,20 @@ type ClassifierEntry = {
 
 /** One entry per spec, plus one per declared variant (e.g. "Clase abstracta"). */
 function classifierEntries(): ClassifierEntry[] {
-  return CLASSIFIER_LIST.flatMap((spec) => [
-    { key: spec.kind, label: spec.label, icon: spec.icon, classifierKind: spec.kind },
-    ...(spec.variants ?? []).map((variant) => ({
-      key: `${spec.kind}:${variant.id}`,
-      label: variant.label,
-      icon: variant.icon,
-      classifierKind: spec.kind,
-      variantId: variant.id,
-    })),
-  ])
+  return CLASSIFIER_LIST
+    // A classifier that belongs to a relation has no tool here: its relation
+    // creates it (the association class lives under "Relaciones").
+    .filter((spec) => spec.attachedToRelation !== true)
+    .flatMap((spec) => [
+      { key: spec.kind, label: spec.label, icon: spec.icon, classifierKind: spec.kind },
+      ...(spec.variants ?? []).map((variant) => ({
+        key: `${spec.kind}:${variant.id}`,
+        label: variant.label,
+        icon: variant.icon,
+        classifierKind: spec.kind,
+        variantId: variant.id,
+      })),
+    ])
 }
 
 /**

@@ -37,6 +37,12 @@ export type Property = {
   /** Rendered as /name */
   isDerived: boolean
   isReadOnly: boolean
+  /**
+   * The `{id}` modifier of UML 2.5: this property is part of what identifies an
+   * instance of its classifier. It is what the exporter turns into the primary
+   * key, instead of inventing a surrogate `id` nobody asked for.
+   */
+  isId: boolean
   isOrdered: boolean
   isUnique: boolean
 }
@@ -99,6 +105,18 @@ export type UmlNode = {
 
   /** Containing package, or null. */
   parentId: string | null
+
+  /**
+   * The association this node is the class OF, or null for an ordinary node.
+   *
+   * In UML 2.5 an AssociationClass is a SINGLE element that is at once an
+   * Association and a Class. This model keeps nodes and edges in separate
+   * collections, so it is stored as a node that points at its edge — and the
+   * pointer lives on the node because the node is the dependent half: an
+   * association survives losing its class, a class cannot survive losing its
+   * association (§5.4.6).
+   */
+  associationId: string | null
 
   /**
    * Compartments indexed by the id declared in the classifier spec.

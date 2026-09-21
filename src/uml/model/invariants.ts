@@ -82,6 +82,26 @@ function checkNodes(doc: UmlDocument, ctx: RefinementCtx, diagramIds: Set<string
         message: `El nodo "${key}" apunta a un diagrama inexistente "${node.diagramId}".`,
       })
     }
+
+    // §5.4.6 — an association class points at a relation that is really there,
+    // and in its own diagram. A dangling pointer draws a dashed line to nowhere.
+    if (node.associationId !== null) {
+      const association = doc.edges[node.associationId]
+
+      if (!association) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['nodes', key, 'associationId'],
+          message: `El nodo "${key}" es la clase de una relación inexistente "${node.associationId}".`,
+        })
+      } else if (association.diagramId !== node.diagramId) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['nodes', key, 'associationId'],
+          message: `El nodo "${key}" y su relación "${node.associationId}" están en diagramas distintos.`,
+        })
+      }
+    }
   }
 }
 

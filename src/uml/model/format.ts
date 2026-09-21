@@ -20,6 +20,8 @@ function joinModifiers(modifiers: string[]): string {
 
 export function formatProperty(property: Property): string {
   const modifiers: string[] = []
+  // {id} primero: es lo que identifica, no un adorno más.
+  if (property.isId) modifiers.push('id')
   if (property.isReadOnly) modifiers.push('readOnly')
   if (property.isOrdered) modifiers.push('ordered')
   if (!property.isUnique) modifiers.push('nonunique')

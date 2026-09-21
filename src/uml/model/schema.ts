@@ -5,7 +5,7 @@ import { checkDocumentInvariants } from '@/uml/model/invariants'
 import type { UmlDocument, UmlEdge, UmlNode } from '@/uml/model/types'
 
 /** Bump on every change to the document shape, together with its migration. */
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 3
 
 export const DOCUMENT_KIND = 'uml-class-model'
 
@@ -36,6 +36,7 @@ export const propertySchema = z.object({
   isStatic: z.boolean(),
   isDerived: z.boolean(),
   isReadOnly: z.boolean(),
+  isId: z.boolean(),
   isOrdered: z.boolean(),
   isUnique: z.boolean(),
 })
@@ -89,6 +90,7 @@ export const nodeSchema = z.object({
   z: z.number(),
   style: nodeStyleSchema.optional(),
   parentId: idSchema.nullable(),
+  associationId: idSchema.nullable(),
   compartments: z.record(z.string(), z.array(memberSchema)),
 })
 

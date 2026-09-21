@@ -210,10 +210,177 @@ navegador no ofrece.
 dos colaboradores invitados— abiertas en el mismo proyecto se pisan en silencio cada 15
 segundos, y gana la ultima en escribir. Antes era teorico; con autoguardado es probable.
 
+---
+
+## 8. Clase de asociacion
+
+La caja que lleva los atributos que pertenecen a la **relacion** y no a ninguno de sus dos
+extremos. El caso tipico es un muchos-a-muchos: Estudiante *—* Curso con una `nota` y una
+`fechaInscripcion` que no son del estudiante ni del curso, sino de ese estudiante en ese
+curso.
+
+- [x] `schemaVersion` **1 -> 2**: `node.associationId` en `types.ts`, `schema.ts`,
+      `factories.ts` y la migracion en `migrations.ts`
+- [x] Invariante §5.4.6 en `invariants.ts`: la arista referenciada existe y esta en el
+      mismo diagrama
+- [x] Cascada simetrica en `commands/edges.ts` y `commands/nodes.ts`: nacen juntas y se
+      van juntas. Borrar la relacion borra su clase, borrar la clase borra la relacion, y
+      borrar una clase de un extremo se lleva las dos
+- [x] **Es una herramienta de relacion, no de clasificador.** Unis dos clases y nace la
+      asociacion con su clase colgando. Asi se dibuja de verdad una clase de asociacion:
+      nadie coloca una caja y despues busca una linea
+- [x] `registry/relations/associationClass.ts` — el `RelationSpec` que aparece en la
+      seccion **Relaciones** de la paleta, con extremos `0..*` / `0..*` por defecto
+- [x] `RelationSpec.classifierKind`: dibujar esta relacion crea ademas un clasificador de
+      ese tipo, unido a ella
+- [x] `ClassifierSpec.attachedToRelation`: el clasificador sigue registrado —el nodo tiene
+      que poder renderizarse— pero no tiene herramienta propia en la paleta
+- [x] `addEdgeWithClass`: **un solo comando**, asi el gesto entero es un solo Ctrl+Z
+- [x] `useCreateRelation` coloca la caja bajo el punto medio de las dos clases
+- [x] `canvas/AssociationLinks.tsx`: el conector punteado, en `<ViewportPortal>` porque
+      **no es una arista de React Flow** — React Flow une nodo con nodo, y esto une un
+      nodo con el medio de una arista
+- [x] El validador del spec avisa (no bloquea) cuando la relacion no es de muchos a muchos
+- [x] Esta en `fullSampleDocument`, asi que el round-trip cubre el campo nuevo
+- [x] `src/uml/model/associationClass.test.ts`
+
+**Bug de fondo corregido de paso:** `ClassifierSpec.validate` y `RelationSpec.validate`
+estaban declarados en el registry y documentados como el punto de extension, pero
+`validateDocument` **no los llamaba nunca**. Cualquier regla escrita en un spec era codigo
+muerto. Ahora `checkSpecRules` los recorre.
+
+**Rareza corregida de paso:** `validators.ts` tenia un byte NUL literal dentro de un
+template string, usado como separador de clave compuesta. Funcionaba, pero volvia el
+archivo "binario" para `grep`. Ahora es `\u0000`, mismo valor y archivo legible.
+
+**Listo cuando**: con la herramienta armada, arrastrar de una clase a otra crea la
+asociacion **y** su caja unida por linea punteada; mover cualquiera de las cajas mueve la
+linea; borrar cualquiera de las dos mitades borra la otra; un Ctrl+Z deshace todo el
+gesto; y un proyecto guardado en v1 sigue abriendo.
+
+---
+
+## 9. Invitaciones
+
+La base de la colaboracion: quien puede abrir cada proyecto. **Los sockets y la edicion
+simultanea siguen siendo fase 4**; esto es solo el permiso.
+
+### En el diagramador
+
+- [x] Boton **Invitar** en la barra, deshabilitado con explicacion si no sos el dueño —
+      el backend responde 403 y es mejor decirlo antes que fallar despues
+- [x] `ui/Modal.tsx`, el dialogo generico de `ui/` (§4): cierra con Escape y con clic en
+      el fondo. El listener va en fase de captura porque el lienzo tambien escucha Escape
+      para cancelar su herramienta, y mientras hay un dialogo la tecla es del dialogo
+- [x] `ui/invitations/InviteModal.tsx`: pegas un UUID, se resuelve a una persona, y recien
+      entonces invitas
+- [x] El mismo modal lista las invitaciones que enviaste, con estado, fecha y destinatario,
+      y deja cancelarlas
+
+### En el dashboard
+
+- [x] La lista unica se parte en **Mis proyectos** y **Proyectos invitados**, separados por
+      `proyecto.idUsuario === miId`
+- [x] Boton **Invitaciones** en la cabecera de "Proyectos invitados"
+- [x] `ui/invitations/ReceivedInvitationsModal.tsx`: nombre del proyecto, fecha y estado
+- [x] Aceptar y rechazar desde ese modal, y al aceptar se recarga la lista de proyectos
+- [x] `ui/home/UuidCard.tsx` en la cabecera: **tu propio UUID**, con boton de copiar.
+      Sin esto el modal de invitar no sirve — pide un UUID que nadie tiene forma de
+      conocer, ni siquiera el propio. El id va en un input de solo lectura, no en un
+      parrafo, para que siga pudiendo seleccionarse a mano cuando el portapapeles falla
+      (origen inseguro, o un navegador que lo niega)
+- [x] El modal de invitar dice de donde sale ese UUID, para que el que invita sepa que
+      pedir
+
+### La capa de datos
+
+- [x] `api/invitations.ts` — list, create, respond, cancel
+- [x] `api/users.ts` — `getUser`, para resolver el UUID
+- [x] `Invitacion` y `EstadoInvitacion` en `api/types.ts`
+
+### Decisiones
+
+| Tema | Decision | Motivo |
+|---|---|---|
+| **UUID vs correo** | El modal pide UUID, como se pidio, pero el backend identifica al invitado por **correo** (`POST /invitaciones` valida `correo`). El UUID se resuelve antes con `GET /usuarios/:id` | Sin tocar el backend. Y el paso intermedio no es un parche: es lo que te deja **ver a quien vas a invitar**. Un UUID es ilegible; mandar la invitacion a la persona equivocada por un caracter mal pegado, sin confirmacion, seria el fallo obvio de esta pantalla |
+| Aceptar / rechazar | Incluidos aunque no se pidieron | `PATCH /invitaciones/:id` es la unica forma de responder una invitacion y no lo llamaba nadie mas. Una lista de pendientes que no se pueden aceptar dejaria la funcionalidad inerte |
+| Dos listados de un solo endpoint | `GET /invitaciones` devuelve las recibidas **y** las emitidas sobre mis proyectos; se separan en el cliente | El backend no acepta filtrar por lado. Enviadas: `proyecto.idUsuario === miId`. Recibidas: `idUsuario === miId`. No se solapan porque el backend prohibe autoinvitarse |
+
+**Listo cuando**: B copia su UUID de su dashboard y se lo pasa a A, A lo pega e invita, B
+ve la invitacion en su dashboard con proyecto, fecha y estado, la acepta, y el proyecto le
+aparece en "Proyectos invitados".
+
+**Verificado contra el backend real** (18 comprobaciones, `scratchpad/invitaciones-e2e.ts`):
+el flujo completo mas las reglas que el modal debe respetar — no invitar dos veces a la
+misma persona, no invitarse a uno mismo, y que un invitado no pueda invitar a otros.
+
+---
+
+## 10. Sockets: colaboracion en tiempo real
+
+Una sala por proyecto (`proyecto:<uuid>`), los cambios se ven al instante, y el guardado
+sigue una sola cadencia **por sala**, no una por persona.
+
+### Que viaja
+
+- [x] **El comando, no el diagrama.** Es el pago de CLAUDE.md §6.2: toda mutacion ya pasa
+      por un comando con payload JSON serializable, asi que difundir `{ type, payload }`
+      **es** el mecanismo de sincronizacion. Mover una caja son decenas de bytes
+- [x] Deshacer, rehacer e importar son la excepcion: reemplazan el documento entero en vez
+      de aplicar un comando, asi que no hay nada pequeño que mandar y va todo
+- [x] `onStoreChange` / `applyRemote` en el store: lo que llega de la sala se aplica **sin**
+      volver a anunciarse. Sin eso dos clientes se rebotan el mismo comando para siempre
+- [x] Lo remoto entra con `history: false`: Ctrl+Z deshace lo tuyo, nunca lo de otro
+- [x] Nada del socket se cree: un documento que llega se valida con zod igual que un
+      archivo importado
+
+### El guardado: un contador por sala
+
+- [x] El temporizador vive en el **servidor**, uno por sala (`sockets/salas.js`)
+- [x] Al vencer, el servidor le pide el documento a un cliente designado (`pedir-snapshot`),
+      lo guarda, y avisa a todos con `guardado`
+- [x] `sala.sucia`: sin cambios no escribe, aunque el temporizador siga corriendo
+- [x] `sala.version`: si alguien edita **entre** que se pide el documento y que termina la
+      escritura, la sala sigue sucia y se vuelve a guardar. Sin esto ese cambio se perdia
+      hasta que alguien volviera a editar
+- [x] `useAutosave` cede: con la sala conectada se apagan **el debounce y el latido**
+      locales. Queda solo el guardado de salida, que no es un contador sino el cierre de
+      la puerta, y que cubre que el socket se caiga
+
+### Lo demas
+
+- [x] Autenticacion del socket con el mismo JWT del REST, y `proyecto.service.getById`
+      decide si entras: la sala no es una puerta trasera al contenido
+- [x] Al entrar, si ya habia alguien, el estado inicial se le pide a esa persona y no a la
+      base: su pantalla puede tener cambios sin guardar
+- [x] Indicador "N en la sala" en la barra del editor
+- [x] `AUTOSAVE_INTERVAL_MS` configurable en el backend
+
+**Listo cuando**: dos navegadores con el mismo proyecto abierto se ven mover las cajas,
+crear y borrar clases, relaciones, atributos y operaciones, y renombrar cualquier cosa; y
+en la base hay **un** guardado cada n segundos, no dos.
+
+**Verificado contra el backend real** (17 comprobaciones, `scratchpad/sockets-e2e.js`):
+aislamiento entre salas, sincronizacion, ausencia de eco, y que los dos miembros reciben
+**el mismo instante de guardado** — un solo guardado, no uno por persona.
+
+### Limite conocido
+
+Las posiciones intermedias de un arrastre no viajan. CLAUDE.md §6.3 manda que solo el
+evento final sea un cambio del documento, asi que el otro lado ve la caja **al soltarla**,
+no siguiendo el puntero. Hacerlo en vivo es un canal efimero aparte, que no toca el
+documento ni el historial.
+
 ## Fuera de alcance (lo que NO se hace en este pedido)
 
-`Ctrl+S` manual, bloqueo optimista con `version`, la pantalla de invitaciones, renombrar
-y borrar proyectos desde la home, y los sockets de colaboración.
+`Ctrl+S` manual, renombrar y borrar proyectos desde la home, el arrastre en vivo (ver el
+limite del bloque 10), y la resolucion de conflictos cuando dos personas editan **el mismo
+elemento** a la vez: gana el ultimo comando que llega. Para algo mejor hace falta CRDT
+(Yjs), que es lo que CLAUDE.md §6.4 ya anticipaba.
+
+El `version` del proyecto en Prisma dejo de ser urgente para el caso colaborativo — la
+sala guarda una sola vez y desde un solo sitio — pero sigue faltando para dos pestañas del
+**mismo** usuario en proyectos sin sala.
 
 El `version` de CLAUDE.md §10 **no existe en el schema de Prisma**. Es lo primero que hay
 que agregar: mientras no esté, el autoguardado del bloque 7 resuelve los conflictos por

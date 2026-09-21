@@ -51,7 +51,7 @@ describe('relation registry', () => {
     }
   })
 
-  it('covers the six relations of phase 1', () => {
+  it('covers the six relations of phase 1 plus the association class', () => {
     expect(RELATION_LIST.map((spec) => spec.kind)).toEqual([
       'association',
       'directed-association',
@@ -59,7 +59,28 @@ describe('relation registry', () => {
       'composition',
       'generalization',
       'realization',
+      'association-class',
     ])
+  })
+
+  it('the association class is the one relation that also creates a classifier', () => {
+    const withClassifier = RELATION_LIST.filter((spec) => spec.classifierKind !== undefined)
+
+    expect(withClassifier.map((spec) => spec.kind)).toEqual(['association-class'])
+    // The kind it names has to be registered, or drawing it would throw.
+    expect(() => getClassifier(withClassifier[0]?.classifierKind ?? '')).not.toThrow()
+  })
+
+  it('a classifier that belongs to a relation has no palette tool of its own', () => {
+    for (const spec of CLASSIFIER_LIST) {
+      if (spec.attachedToRelation !== true) continue
+
+      const creator = RELATION_LIST.find((relation) => relation.classifierKind === spec.kind)
+
+      // Otherwise it would be unreachable: hidden from the palette and created
+      // by nobody.
+      expect(creator, `nada crea "${spec.kind}"`).toBeDefined()
+    }
   })
 
   it('throws on an unknown kind', () => {

@@ -46,6 +46,8 @@ export function createFullSampleDocument(): UmlDocument {
   persona.style = { fill: '#fefce8', stroke: '#a16207' }
   persona.z = 2
   persona.compartments.attributes = [
+    // {id}: la identidad de la jerarquía, y lo que el exportador usa como clave primaria.
+    createProperty({ id: 'm_dni', name: 'dni', type: 'String', visibility: '#', isId: true }),
     createProperty({ id: 'm_nombre', name: 'nombre', type: 'String', visibility: '#' }),
     createProperty({
       id: 'm_edad',
@@ -122,7 +124,27 @@ export function createFullSampleDocument(): UmlDocument {
     createOperation({ id: 'm_pagar', name: 'pagar', returnType: 'void' }),
   ]
 
-  for (const node of [persona, estudiante, curso, inscripcion, direccion, pagable]) {
+  /**
+   * The association class of `e_assoc`. Its attributes belong to the pairing of
+   * Estudiante and Curso, not to either of them: a grade is not a property of
+   * the student nor of the course, but of that student being in that course.
+   *
+   * It is here so the round trip covers `associationId` (schemaVersion 2).
+   */
+  const matricula = createNode({
+    id: 'n_matricula',
+    kind: 'association-class',
+    name: 'Matricula',
+    position: { x: 120, y: 560 },
+    compartmentIds: ['attributes', 'operations'],
+    associationId: 'e_matricula',
+  })
+  matricula.compartments.attributes = [
+    createProperty({ id: 'm_nota', name: 'nota', type: 'Decimal', visibility: '-' }),
+    createProperty({ id: 'm_fecha', name: 'fechaInscripcion', type: 'Date', visibility: '-' }),
+  ]
+
+  for (const node of [persona, estudiante, curso, inscripcion, direccion, pagable, matricula]) {
     doc.nodes[node.id] = node
   }
 
@@ -168,6 +190,18 @@ export function createFullSampleDocument(): UmlDocument {
       target: 'n_estudiante',
       routing: 'bezier',
       ends: { source: { multiplicity: '1' }, target: { multiplicity: '0..*' } },
+    }),
+    // The relation the association class above belongs to. Many-to-many, which
+    // is the case the element exists for.
+    createEdge({
+      id: 'e_matricula',
+      kind: 'association-class',
+      source: 'n_estudiante',
+      target: 'n_curso',
+      ends: {
+        source: { multiplicity: '0..*' },
+        target: { multiplicity: '0..*' },
+      },
     }),
     createEdge({
       id: 'e_comp',

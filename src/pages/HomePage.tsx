@@ -1,4 +1,4 @@
-import { FilePlus2, FolderOpen, Loader2, LogOut, RefreshCw } from 'lucide-react'
+import { FilePlus2, FolderOpen, ImageUp, Loader2, LogOut, Mail, RefreshCw, Users } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -8,6 +8,9 @@ import type { ProyectoResumen } from '@/api/types'
 import { useAuthStore } from '@/auth/useAuthStore'
 import { FormError } from '@/ui/auth/FormError'
 import { ProjectCard } from '@/ui/home/ProjectCard'
+import { ImportSketchDialog } from '@/ui/home/ImportSketchDialog'
+import { UuidCard } from '@/ui/home/UuidCard'
+import { ReceivedInvitationsModal } from '@/ui/invitations/ReceivedInvitationsModal'
 
 /**
  * The projects of whoever is logged in: owned ones plus those reached through
@@ -17,6 +20,11 @@ import { ProjectCard } from '@/ui/home/ProjectCard'
  * spinner that never resolves and an empty list look identical otherwise, and
  * the user cannot tell "you have no projects" from "the backend is down".
  */
+
+const SECTION_TITLE =
+  'flex items-center gap-2 text-xs font-semibold tracking-wide text-slate-400 uppercase'
+
+const COUNT = 'rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] text-slate-600'
 
 type Estado =
   | { kind: 'loading' }
@@ -32,6 +40,8 @@ export function HomePage() {
   /** Bumped by the retry button to re-run the effect. */
   const [intento, setIntento] = useState(0)
 
+  const [viendoInvitaciones, setViendoInvitaciones] = useState(false)
+  const [importandoBoceto, setImportandoBoceto] = useState(false)
   const [creando, setCreando] = useState(false)
   const [nombreNuevo, setNombreNuevo] = useState('')
   const [pendingCreate, setPendingCreate] = useState(false)
@@ -56,6 +66,11 @@ export function HomePage() {
 
     return () => controller.abort()
   }, [intento])
+
+  const recargarProyectos = useCallback(() => {
+    setEstado({ kind: 'loading' })
+    setIntento((n) => n + 1)
+  }, [])
 
   const openProject = useCallback(
     (idProyecto: string) => navigate(`/proyectos/${idProyecto}`),
@@ -86,51 +101,43 @@ export function HomePage() {
     }
   }
 
+  const miId = usuario?.idUsuario ?? null
+  const proyectos = estado.kind === 'ready' ? estado.proyectos : []
+
+  // `GET /proyectos` mixes both: the ones I own and the ones I reached through
+  // an accepted invitation. The owner id is what tells them apart.
+  const propios = proyectos.filter((proyecto) => proyecto.idUsuario === miId)
+  const invitados = proyectos.filter((proyecto) => proyecto.idUsuario !== miId)
+
   return (
     <div className="min-h-full bg-slate-100">
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 px-6 py-4">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold tracking-widest text-sky-600 uppercase">
-              Diagramador UML
-            </p>
-            <h1 className="truncate text-lg font-semibold text-slate-800">
-              {usuario === null ? 'Mis proyectos' : `Proyectos de ${usuario.nombre}`}
-            </h1>
+        <div className="mx-auto max-w-3xl px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold tracking-widest text-sky-600 uppercase">
+                Diagramador UML
+              </p>
+              <h1 className="truncate text-lg font-semibold text-slate-800">
+                {usuario === null ? 'Mis proyectos' : `Proyectos de ${usuario.nombre}`}
+              </h1>
+            </div>
+
+            <button
+              type="button"
+              onClick={signOut}
+              className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Cerrar sesión
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={signOut}
-            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            Cerrar sesión
-          </button>
+          {usuario !== null && <UuidCard idUsuario={usuario.idUsuario} />}
         </div>
       </header>
 
       <main className="mx-auto max-w-3xl px-6 py-8">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <p className="text-sm text-slate-500">
-            {estado.kind === 'ready'
-              ? `${estado.proyectos.length} ${estado.proyectos.length === 1 ? 'proyecto' : 'proyectos'}`
-              : ''}
-          </p>
-
-          <button
-            type="button"
-            onClick={() => {
-              setCreando((abierto) => !abierto)
-              setCreateError(null)
-            }}
-            className="flex items-center gap-1.5 rounded-md bg-sky-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-sky-700"
-          >
-            <FilePlus2 className="h-3.5 w-3.5" />
-            Nuevo proyecto
-          </button>
-        </div>
-
         {creando && (
           <form
             onSubmit={(event) => void submitCreate(event)}
@@ -170,10 +177,7 @@ export function HomePage() {
             <p className="text-sm text-red-700">{estado.message}</p>
             <button
               type="button"
-              onClick={() => {
-                setEstado({ kind: 'loading' })
-                setIntento((n) => n + 1)
-              }}
+              onClick={recargarProyectos}
               className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100"
             >
               <RefreshCw className="h-3.5 w-3.5" />
@@ -182,30 +186,122 @@ export function HomePage() {
           </div>
         )}
 
-        {estado.kind === 'ready' && estado.proyectos.length === 0 && (
-          <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
-            <FolderOpen className="mx-auto h-8 w-8 text-slate-300" />
-            <p className="mt-3 text-sm font-medium text-slate-700">Todavía no tienes proyectos</p>
-            <p className="mt-1 text-xs text-slate-500">
-              Crea el primero y el lienzo se abre en blanco, listo para diagramar.
-            </p>
-          </div>
-        )}
+        {estado.kind === 'ready' && (
+          <>
+            <section className="mb-8">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className={SECTION_TITLE}>
+                  Mis proyectos <span className={COUNT}>{propios.length}</span>
+                </h2>
 
-        {estado.kind === 'ready' && estado.proyectos.length > 0 && (
-          <ul className="flex flex-col gap-2">
-            {estado.proyectos.map((proyecto) => (
-              <li key={proyecto.idProyecto}>
-                <ProjectCard
-                  proyecto={proyecto}
-                  idUsuarioSesion={usuario?.idUsuario ?? null}
-                  onOpen={() => openProject(proyecto.idProyecto)}
-                />
-              </li>
-            ))}
-          </ul>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setImportandoBoceto(true)}
+                    title="Reconstruir un diagrama a partir de una foto"
+                    className="flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700"
+                  >
+                    <ImageUp className="h-3.5 w-3.5" />
+                    Importar boceto
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreando((abierto) => !abierto)
+                      setCreateError(null)
+                    }}
+                    className="flex items-center gap-1.5 rounded-md bg-sky-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-sky-700"
+                  >
+                    <FilePlus2 className="h-3.5 w-3.5" />
+                    Nuevo proyecto
+                  </button>
+                </div>
+              </div>
+
+              {propios.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
+                  <FolderOpen className="mx-auto h-8 w-8 text-slate-300" />
+                  <p className="mt-3 text-sm font-medium text-slate-700">
+                    Todavía no tienes proyectos
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Crea el primero y el lienzo se abre en blanco, listo para diagramar.
+                  </p>
+                </div>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {propios.map((proyecto) => (
+                    <li key={proyecto.idProyecto}>
+                      <ProjectCard
+                        proyecto={proyecto}
+                        idUsuarioSesion={miId}
+                        onOpen={() => openProject(proyecto.idProyecto)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className={SECTION_TITLE}>
+                  Proyectos invitados <span className={COUNT}>{invitados.length}</span>
+                </h2>
+
+                <button
+                  type="button"
+                  onClick={() => setViendoInvitaciones(true)}
+                  className="flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700"
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                  Invitaciones
+                </button>
+              </div>
+
+              {invitados.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">
+                  <Users className="mx-auto h-7 w-7 text-slate-300" />
+                  <p className="mt-3 text-sm font-medium text-slate-700">
+                    No colaboras en ningún proyecto ajeno
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Un proyecto aparece acá cuando aceptas la invitación de su dueño.
+                  </p>
+                </div>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {invitados.map((proyecto) => (
+                    <li key={proyecto.idProyecto}>
+                      <ProjectCard
+                        proyecto={proyecto}
+                        idUsuarioSesion={miId}
+                        onOpen={() => openProject(proyecto.idProyecto)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </>
         )}
       </main>
+
+      {importandoBoceto && (
+        <ImportSketchDialog
+          onClose={() => setImportandoBoceto(false)}
+          onCreado={(idProyecto) => openProject(idProyecto)}
+        />
+      )}
+
+      {viendoInvitaciones && (
+        <ReceivedInvitationsModal
+          onClose={() => setViendoInvitaciones(false)}
+          // Accepting grants access to a project, so the list behind has to catch up.
+          onAccepted={recargarProyectos}
+        />
+      )}
     </div>
   )
 }

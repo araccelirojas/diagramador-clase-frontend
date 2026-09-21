@@ -1,5 +1,6 @@
 import { SelectField, type Option } from '@/inspector/fields/SelectField'
 import { TextField } from '@/inspector/fields/TextField'
+import { TypeField } from '@/inspector/fields/TypeField'
 import { DANGER_BUTTON, SMALL_BUTTON } from '@/inspector/inspectorStyles'
 import { addParameter, removeParameter, updateParameter } from '@/state/commands'
 import { useDiagramStore } from '@/state/useDiagramStore'
@@ -64,14 +65,11 @@ export function ParameterList({ nodeId, compartmentId, operation }: ParameterLis
               }
               mono
             />
-            <TextField
-              label="Tipo"
+            <TypeField
               value={parameter.type}
-              onCommit={(type) =>
+              onChange={(type) =>
                 dispatch(updateParameter({ ...address, parameterId: parameter.id, patch: { type } }))
               }
-              nullable
-              mono
             />
             <SelectField
               label="Dirección"

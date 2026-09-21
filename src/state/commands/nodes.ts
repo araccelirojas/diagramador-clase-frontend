@@ -14,13 +14,38 @@ export const addNode = defineCommand('node.add', (draft, payload: { node: UmlNod
 export const removeNodes = defineCommand('node.remove', (draft, payload: { ids: string[] }) => {
   const removed = new Set(payload.ids)
 
+  // Read before deleting: an association class and its relation are one UML
+  // element (§11.5), so deleting the box deletes the line too — exactly as
+  // deleting the line already deletes the box.
+  const orphanedAssociations = new Set<string>()
+
+  for (const id of removed) {
+    const node = draft.nodes[id]
+    if (node?.associationId) orphanedAssociations.add(node.associationId)
+  }
+
   for (const id of removed) {
     delete draft.nodes[id]
   }
 
+  for (const edgeId of orphanedAssociations) {
+    delete draft.edges[edgeId]
+  }
+
+  const removedEdges = new Set<string>()
+
   for (const [edgeId, edge] of Object.entries(draft.edges)) {
     if (removed.has(edge.source) || removed.has(edge.target)) {
       delete draft.edges[edgeId]
+      removedEdges.add(edgeId)
+    }
+  }
+
+  // Deleting a class deletes its relations, and a relation takes its own
+  // association class with it — one more step of the same cascade (§5.4.4).
+  for (const [nodeId, node] of Object.entries(draft.nodes)) {
+    if (node.associationId !== null && removedEdges.has(node.associationId)) {
+      delete draft.nodes[nodeId]
     }
   }
 

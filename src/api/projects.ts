@@ -1,4 +1,4 @@
-import { apiFetch } from '@/api/client'
+import { apiFetch, apiFetchBlob } from '@/api/client'
 import type { ContenidoProyecto, Proyecto, ProyectoResumen } from '@/api/types'
 
 /** `/api/proyectos/*`. */
@@ -8,8 +8,15 @@ export function listProjects(signal?: AbortSignal): Promise<ProyectoResumen[]> {
   return apiFetch<ProyectoResumen[]>('/proyectos', { signal })
 }
 
-export function createProject(nombre: string): Promise<Proyecto> {
-  return apiFetch<Proyecto>('/proyectos', { method: 'POST', body: { nombre } })
+/**
+ * `contenido` es opcional: un proyecto normal nace vacío, pero uno importado desde un
+ * boceto nace con su diagrama puesto, en un solo viaje y sin existir nunca a medias.
+ */
+export function createProject(nombre: string, contenido?: unknown): Promise<Proyecto> {
+  return apiFetch<Proyecto>('/proyectos', {
+    method: 'POST',
+    body: contenido === undefined ? { nombre } : { nombre, contenido },
+  })
 }
 
 export function getProject(id: string, signal?: AbortSignal): Promise<Proyecto> {
@@ -41,4 +48,14 @@ export function saveContent(
     body: { contenido },
     keepalive: options.keepalive,
   })
+}
+
+/**
+ * El backend Spring Boot generado a partir del diagrama, como zip.
+ *
+ * El nombre del fichero lo decide el servidor en `Content-Disposition`, pero `fetch` no lo
+ * expone sin CORS extra, asi que el que descarga se compone en el cliente.
+ */
+export function exportBackend(id: string, signal?: AbortSignal): Promise<Blob> {
+  return apiFetchBlob(`/proyectos/${id}/exportar`, { signal })
 }

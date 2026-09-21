@@ -72,8 +72,11 @@ async function messageOf(response: Response): Promise<string> {
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const token = readToken()
 
+  // FormData trae su propio Content-Type con el `boundary`; ponerlo a mano lo rompe.
+  const esFormulario = options.body instanceof FormData
+
   const headers: Record<string, string> = {}
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json'
+  if (options.body !== undefined && !esFormulario) headers['Content-Type'] = 'application/json'
   if (token !== null) headers.Authorization = `Bearer ${token}`
 
   let response: Response
@@ -82,7 +85,12 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     response = await fetch(`${BASE_URL}${path}`, {
       method: options.method ?? 'GET',
       headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body:
+        options.body === undefined
+          ? undefined
+          : esFormulario
+            ? (options.body as FormData)
+            : JSON.stringify(options.body),
       signal: options.signal,
       keepalive: options.keepalive,
     })
@@ -109,4 +117,38 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   if (response.status === 204) return undefined as T
 
   return (await response.json()) as T
+}
+
+/**
+ * Igual que `apiFetch`, pero devuelve el cuerpo como Blob.
+ *
+ * Existe aparte y no como opcion de `apiFetch` porque el tipo de retorno cambia: un
+ * `Promise<T>` que a veces es JSON y a veces un Blob obliga a castear en cada llamada.
+ */
+export async function apiFetchBlob(path: string, options: RequestOptions = {}): Promise<Blob> {
+  const token = readToken()
+
+  const headers: Record<string, string> = {}
+  if (token !== null) headers.Authorization = `Bearer ${token}`
+
+  let response: Response
+
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      method: options.method ?? 'GET',
+      headers,
+      signal: options.signal,
+    })
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error
+
+    throw new ApiError('No se pudo contactar al servidor.', 0)
+  }
+
+  if (!response.ok) {
+    if (response.status === 401 && token !== null) handleUnauthorized()
+    throw new ApiError(await messageOf(response), response.status)
+  }
+
+  return response.blob()
 }

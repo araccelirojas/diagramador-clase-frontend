@@ -96,7 +96,26 @@ type SaveOptions = {
  *   into B: every project shares one route, so the editor re-renders instead of
  *   remounting and the autosave has no way of telling whose document it holds.
  */
-export function useAutosave(idProyecto: string, enabled: boolean): Autosave {
+export type AutosaveOptions = {
+  /**
+   * The project's room is saving on its own clock. When true this hook gives up
+   * BOTH recurring saves — the debounce and the heartbeat — because the room
+   * owns a single timer for everybody: two collaborators must not end up with
+   * two counters writing the same diagram at different moments.
+   *
+   * The save on the way out stays either way. That is not a counter, it is the
+   * closing of the door, and it is what covers the socket dropping.
+   */
+  roomManaged?: boolean
+}
+
+export function useAutosave(
+  idProyecto: string,
+  enabled: boolean,
+  options: AutosaveOptions = {},
+): Autosave {
+  const roomManaged = options.roomManaged === true
+
   const [state, setState] = useState<SaveState>({ kind: 'idle' })
 
   /** Guards against two overlapping PUTs of the same project. */
@@ -151,6 +170,8 @@ export function useAutosave(idProyecto: string, enabled: boolean): Autosave {
 
   // Shortly after the user stops editing.
   useEffect(() => {
+    if (roomManaged) return
+
     let timer: ReturnType<typeof setTimeout> | undefined
 
     const unsubscribe = useDiagramStore.subscribe((state, previous) => {
@@ -166,14 +187,16 @@ export function useAutosave(idProyecto: string, enabled: boolean): Autosave {
       unsubscribe()
       clearTimeout(timer)
     }
-  }, [save])
+  }, [save, roomManaged])
 
   // The heartbeat: catches whatever the debounce missed — a failed save, or an
   // edit that landed while a previous request was still in flight.
   useEffect(() => {
+    if (roomManaged) return
+
     const id = setInterval(() => void save(), AUTOSAVE_INTERVAL_MS)
     return () => clearInterval(id)
-  }, [save])
+  }, [save, roomManaged])
 
   // Every way the page itself can disappear.
   useEffect(() => {

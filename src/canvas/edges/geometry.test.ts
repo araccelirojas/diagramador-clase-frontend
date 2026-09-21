@@ -2,10 +2,14 @@ import { describe, expect, it } from 'vitest'
 
 import {
   centerOf,
+  edgeGeometry,
+  selfLoopPoints,
   floatingEndpoints,
   intersectRect,
   labelAnchor,
+  orthogonalAttachment,
   pathFor,
+  polylineMidpoint,
   type Rect,
 } from '@/canvas/edges/geometry'
 
@@ -166,5 +170,236 @@ describe('pathFor', () => {
 
   it('produces a curve for bezier routing', () => {
     expect(pathFor('bezier', { x: 0, y: 0 }, { x: 100, y: 0 })).toContain('C')
+  })
+})
+
+/** Reads every anchor point back out of a path string, curves included. */
+function pointsIn(path: string): { x: number; y: number }[] {
+  return [...path.matchAll(/[ML] (-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g)].map((match) => ({
+    x: Number(match[1]),
+    y: Number(match[2]),
+  }))
+}
+
+const A: Rect = { x: 0, y: 0, width: 100, height: 60 }
+
+describe('bezier routing', () => {
+  it('stays a curve after the user drags a bend', () => {
+    // The bug: any waypoint dropped the edge to straight segments, so the
+    // routing silently stopped being a curve.
+    const path = pathFor('bezier', { x: 0, y: 0 }, { x: 200, y: 0 }, [{ x: 100, y: 80 }])
+
+    expect(path).toContain('C')
+    expect(path).not.toContain('L')
+  })
+
+  it('passes exactly through every bend, not merely near them', () => {
+    const path = pathFor('bezier', { x: 0, y: 0 }, { x: 200, y: 0 }, [{ x: 100, y: 80 }])
+
+    expect(path).toContain('100,80')
+  })
+
+  it('curves along the edge direction, so a vertical edge bows vertically', () => {
+    // The old control points were always horizontal, which made two stacked
+    // boxes bulge sideways instead of joining smoothly.
+    const vertical = pathFor('bezier', { x: 0, y: 0 }, { x: 0, y: 200 })
+    const controls = pointsIn(vertical.replace('M', 'L'))
+
+    expect(vertical).toContain('C')
+    // Every control point shares the x of the straight vertical line.
+    for (const point of controls) expect(point.x).toBe(0)
+  })
+
+  it('does not blow up when both ends coincide', () => {
+    expect(() => pathFor('bezier', { x: 5, y: 5 }, { x: 5, y: 5 })).not.toThrow()
+  })
+})
+
+describe('orthogonal attachment', () => {
+  it('leaves through the middle of the side that faces the neighbour', () => {
+    expect(orthogonalAttachment(A, { x: 500, y: 30 })).toEqual({
+      point: { x: 100, y: 30 },
+      axis: 'x',
+    })
+    expect(orthogonalAttachment(A, { x: 50, y: 500 })).toEqual({
+      point: { x: 50, y: 60 },
+      axis: 'y',
+    })
+  })
+
+  it('weighs the direction against the shape of the box', () => {
+    // A wide, short box reached from slightly above must be left through the
+    // top, not through a side just because dx happens to be larger.
+    const wide: Rect = { x: 0, y: 0, width: 400, height: 40 }
+
+    expect(orthogonalAttachment(wide, { x: 260, y: -200 }).axis).toBe('y')
+  })
+})
+
+describe('orthogonal routing between real boxes', () => {
+  const left: Rect = { x: 0, y: 0, width: 100, height: 60 }
+  const right: Rect = { x: 300, y: 200, width: 100, height: 60 }
+
+  it('keeps every run axis aligned, bends included', () => {
+    const geometry = edgeGeometry('orthogonal', left, right, [{ x: 200, y: 120 }])
+
+    for (let index = 1; index < geometry.points.length; index += 1) {
+      const from = geometry.points[index - 1]!
+      const to = geometry.points[index]!
+
+      expect(
+        from.x === to.x || from.y === to.y,
+        `${JSON.stringify(from)} -> ${JSON.stringify(to)}`,
+      ).toBe(true)
+    }
+  })
+
+  it('leaves and arrives perpendicular to the side it attaches to', () => {
+    const geometry = edgeGeometry('orthogonal', left, right)
+    const [first, second] = geometry.points
+    const last = geometry.points[geometry.points.length - 1]!
+    const beforeLast = geometry.points[geometry.points.length - 2]!
+
+    // Attached on a vertical side => the first run is horizontal, and likewise
+    // for the arrival. Attaching diagonally and then turning was what made the
+    // line look like it started off the corner.
+    const exitAxis = first!.x === second!.x ? 'y' : 'x'
+    const entryAxis = beforeLast.x === last.x ? 'y' : 'x'
+
+    expect(exitAxis).toBe(geometry.source.x === 100 || geometry.source.x === 0 ? 'x' : 'y')
+    expect(entryAxis).toBe(geometry.target.x === 300 || geometry.target.x === 400 ? 'x' : 'y')
+  })
+
+  it('detours through the middle when both ends face the same way', () => {
+    // Side by side but not aligned: one elbow cannot leave and arrive
+    // horizontally, so the run needs two.
+    const path = pathFor(
+      'orthogonal',
+      { x: 100, y: 30 },
+      { x: 300, y: 230 },
+      [],
+      { exit: 'x', entry: 'x' },
+    )
+
+    expect(pointsIn(path)).toEqual([
+      { x: 100, y: 30 },
+      { x: 200, y: 30 },
+      { x: 200, y: 230 },
+      { x: 300, y: 230 },
+    ])
+  })
+
+  it('still passes through the bend the user dragged', () => {
+    const geometry = edgeGeometry('orthogonal', left, right, [{ x: 200, y: 120 }])
+
+    expect(geometry.path).toContain('200,120')
+  })
+})
+
+describe('straight routing is left alone', () => {
+  it('is still a plain polyline through the bends', () => {
+    const geometry = edgeGeometry('straight', A, { x: 300, y: 0, width: 100, height: 60 }, [
+      { x: 200, y: 100 },
+    ])
+
+    expect(geometry.path).toContain('L 200,100')
+    expect(geometry.path).not.toContain('C')
+  })
+})
+
+describe('polylineMidpoint', () => {
+  it('measures by length, not by index', () => {
+    // Two segments, the first much longer: the middle falls inside it.
+    const middle = polylineMidpoint([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 110, y: 0 }])
+
+    expect(middle.x).toBeCloseTo(55)
+    expect(middle.y).toBeCloseTo(0)
+  })
+
+  it('survives a degenerate line', () => {
+    expect(polylineMidpoint([{ x: 7, y: 7 }, { x: 7, y: 7 }])).toEqual({ x: 7, y: 7 })
+    expect(polylineMidpoint([])).toEqual({ x: 0, y: 0 })
+  })
+})
+
+describe('auto-asociación: la relación de un elemento consigo mismo', () => {
+  const caja: Rect = { x: 100, y: 100, width: 200, height: 80 }
+
+  it('sale y entra por puntos distintos de la misma caja', () => {
+    const geometria = edgeGeometry('straight', caja, caja, [], true)
+
+    // Si coincidieran, no habría dónde poner una multiplicidad en cada extremo.
+    expect(geometria.source).not.toEqual(geometria.target)
+  })
+
+  it('sus multiplicidades caen fuera de la caja, no tapadas por ella', () => {
+    // Los mismos desplazamientos que usa UmlEdge para colocar las etiquetas.
+    const ALONG = 26
+    const SIDE = 11
+
+    const { source, target, points } = edgeGeometry('straight', caja, caja, [], true)
+
+    // La orientación la da el tramo que sale del extremo. Apuntando al extremo contrario
+    // —que en un bucle está al otro lado de la MISMA caja— la etiqueta caía adentro.
+    const origen = labelAnchor(source, points[1]!, ALONG, -SIDE)
+    const destino = labelAnchor(target, points[points.length - 2]!, ALONG, SIDE)
+
+    const dentro = (p: { x: number; y: number }) =>
+      p.x > caja.x && p.x < caja.x + caja.width && p.y > caja.y && p.y < caja.y + caja.height
+
+    expect(dentro(origen)).toBe(false)
+    expect(dentro(destino)).toBe(false)
+  })
+
+  it('los dos extremos tocan el borde de la caja', () => {
+    const { source, target } = edgeGeometry('straight', caja, caja, [], true)
+
+    const enElBorde = (p: { x: number; y: number }) =>
+      p.x === caja.x ||
+      p.x === caja.x + caja.width ||
+      p.y === caja.y ||
+      p.y === caja.y + caja.height
+
+    expect(enElBorde(source)).toBe(true)
+    expect(enElBorde(target)).toBe(true)
+  })
+
+  it('el bucle sale de la caja en vez de quedarse dentro', () => {
+    const puntos = selfLoopPoints(caja)
+
+    // Al menos un punto por fuera: si no, la línea quedaría tapada por el nodo.
+    expect(puntos.some((p) => p.y < caja.y || p.x > caja.x + caja.width)).toBe(true)
+  })
+
+  it('no degenera a un punto, que es lo que pasaba sin tratarlo aparte', () => {
+    const { path, points } = edgeGeometry('straight', caja, caja, [], true)
+
+    expect(points.length).toBeGreaterThan(2)
+    expect(path).toContain('L')
+  })
+
+  it('pasa por el punto que el usuario arrastró', () => {
+    const geometria = edgeGeometry('straight', caja, caja, [{ x: 400, y: 40 }], true)
+
+    expect(geometria.path).toContain('400,40')
+  })
+
+  it('sigue siendo una curva con ruteo bezier', () => {
+    const geometria = edgeGeometry('bezier', caja, caja, [], true)
+
+    expect(geometria.path).toContain('C')
+  })
+
+  it('su punto medio cae sobre el bucle, no dentro de la caja', () => {
+    const { middle } = edgeGeometry('straight', caja, caja, [], true)
+
+    // Es donde se ancla el conector de una clase de asociación.
+    const dentro =
+      middle.x > caja.x &&
+      middle.x < caja.x + caja.width &&
+      middle.y > caja.y &&
+      middle.y < caja.y + caja.height
+
+    expect(dentro).toBe(false)
   })
 })

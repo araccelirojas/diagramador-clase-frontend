@@ -1,5 +1,6 @@
 import { aggregationSpec } from '@/uml/registry/relations/aggregation'
 import { associationSpec } from '@/uml/registry/relations/association'
+import { associationClassRelationSpec } from '@/uml/registry/relations/associationClass'
 import { compositionSpec } from '@/uml/registry/relations/composition'
 import { directedAssociationSpec } from '@/uml/registry/relations/directedAssociation'
 import { generalizationSpec } from '@/uml/registry/relations/generalization'
@@ -14,6 +15,7 @@ const SPECS: RelationSpec[] = [
   compositionSpec,
   generalizationSpec,
   realizationSpec,
+  associationClassRelationSpec,
 ]
 
 export const RELATIONS: Record<string, RelationSpec> = Object.fromEntries(

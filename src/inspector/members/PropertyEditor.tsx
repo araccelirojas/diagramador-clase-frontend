@@ -2,6 +2,7 @@ import { CheckboxField } from '@/inspector/fields/CheckboxField'
 import { MoreOptions } from '@/inspector/fields/MoreOptions'
 import { MultiplicityField } from '@/inspector/fields/MultiplicityField'
 import { TextField } from '@/inspector/fields/TextField'
+import { TypeField } from '@/inspector/fields/TypeField'
 import { VisibilityField } from '@/inspector/fields/VisibilityField'
 import type { Property } from '@/uml/model/types'
 
@@ -26,18 +27,22 @@ export function PropertyEditor({ property, onPatch }: PropertyEditorProps) {
         onCommit={(name) => onPatch({ name: name ?? '' })}
         mono
       />
-      <TextField
-        label="Tipo"
-        value={property.type}
-        onCommit={(type) => onPatch({ type })}
-        placeholder="String, int, Curso…"
-        nullable
-        mono
-      />
+      <TypeField value={property.type} onChange={(type) => onPatch({ type })} />
       <VisibilityField
         value={property.visibility}
         onChange={(visibility) => onPatch({ visibility })}
       />
+
+      {/* Fuera de "Más opciones" a propósito: es lo que identifica al objeto, no un adorno.
+          Es el modificador {id} de UML 2.5 y lo que el exportador usa como clave primaria. */}
+      <div className="pt-0.5">
+        <CheckboxField
+          label="{id}"
+          checked={property.isId}
+          onChange={(isId) => onPatch({ isId })}
+          hint="Identifica al objeto: el exportador lo usa como clave primaria"
+        />
+      </div>
 
       <MoreOptions>
         <MultiplicityField
