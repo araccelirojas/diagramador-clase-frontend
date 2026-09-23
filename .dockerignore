@@ -1,0 +1,4 @@
+# La imagen solo necesita el build. Todo lo demas fuera, empezando por
+# node_modules, que multiplicaria por cien el tamano del contexto.
+*
+!dist

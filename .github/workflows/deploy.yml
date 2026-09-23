@@ -1,0 +1,86 @@
+name: Desplegar frontend
+
+# Cada push a main compila el SPA y deja el build en la instancia EC2 del
+# proyecto. El despliegue lo hace el mismo script que usas en local
+# (infra/aws-deploy.sh), asi no hay dos formas distintas de desplegar que se
+# puedan desincronizar.
+#
+# La infraestructura no se toca desde aqui: la crea y la destruye el
+# repositorio del backend, que es donde vive infra/aws-up.sh.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+# Dos despliegues a la vez dejarian una mezcla de dos builds en el volumen:
+# el index.html de uno apuntando a los assets del otro.
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+  APP_DOMAIN: ${{ vars.APP_DOMAIN || 'galflabs.tech' }}
+  # Ruta relativa: el frontend y la API comparten origen en la misma instancia.
+  VITE_API_URL: ${{ vars.VITE_API_URL || '/api' }}
+
+jobs:
+  verificar:
+    name: Lint, tipos y pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tipos
+        run: npm run typecheck
+
+      - name: Pruebas
+        run: npm test
+
+  desplegar:
+    name: Desplegar en AWS
+    needs: verificar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Configurar credenciales de AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Compilar y publicar
+        run: bash infra/aws-deploy.sh
+
+      - name: Resumen
+        if: always()
+        run: |
+          {
+            echo "### Frontend"
+            echo ""
+            echo "- Commit: \`${GITHUB_SHA::7}\`"
+            echo "- Aplicacion: https://${APP_DOMAIN}"
+          } >> "$GITHUB_STEP_SUMMARY"
