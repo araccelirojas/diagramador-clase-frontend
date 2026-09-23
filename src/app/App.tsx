@@ -9,6 +9,7 @@ import { Inspector } from '@/inspector/Inspector'
 import { Palette } from '@/palette/Palette'
 import { ExportBackendButton } from '@/ui/ExportBackendButton'
 import { InviteModal } from '@/ui/invitations/InviteModal'
+import { ANCHO_PLEGADO, PanelLateral } from '@/ui/PanelLateral'
 import { SaveStatus } from '@/sync/SaveStatus'
 import type { SaveState } from '@/sync/useAutosave'
 import type { CollaborationState } from '@/sync/useCollaboration'
@@ -16,7 +17,8 @@ import { Toolbar } from '@/ui/Toolbar'
 import { VozPanel } from '@/voz/VozPanel'
 
 /**
- * General layout: toolbar on top, palette | canvas | inspector below.
+ * General layout: toolbar on top, palette | canvas | inspector below. Both side panels
+ * collapse to a narrow strip to give the canvas the room (`PanelLateral`).
  * Holds no business logic; every zone reads what it needs from the store.
  *
  * `EditorPage` mounts it only once the project's document is already in the
@@ -39,12 +41,26 @@ function App({
   const miId = useAuthStore((state) => state.usuario?.idUsuario ?? null)
   const [invitando, setInvitando] = useState(false)
 
+  /*
+   * Plegar los paneles le da el ancho al lienzo. Vive en memoria y no en localStorage a
+   * propósito: ahí solo se guarda el token de sesión (CLAUDE.md, "Sesión con JWT").
+   */
+  const [clasesPlegado, setClasesPlegado] = useState(false)
+  const [propiedadesPlegado, setPropiedadesPlegado] = useState(false)
+
   // The backend refuses an invitation from anyone but the owner, so the button
   // says why instead of failing after the fact.
   const soyDueno = miId !== null && proyecto.idUsuario === miId
 
   return (
-    <div className="grid h-full grid-cols-[14rem_1fr_20rem] grid-rows-[3rem_1fr] bg-slate-100 text-slate-800">
+    <div
+      className="grid h-full grid-rows-[3rem_1fr] bg-slate-100 text-slate-800 transition-[grid-template-columns] duration-200 ease-out"
+      style={{
+        gridTemplateColumns: `${clasesPlegado ? ANCHO_PLEGADO : '14rem'} minmax(0, 1fr) ${
+          propiedadesPlegado ? ANCHO_PLEGADO : '20rem'
+        }`,
+      }}
+    >
       <header className="col-span-3 flex min-w-0 items-center gap-2 overflow-hidden border-b border-slate-300 bg-white px-4">
         <Link
           to="/"
@@ -112,22 +128,32 @@ function App({
         />
       )}
 
-      <aside className="overflow-y-auto border-r border-slate-300 bg-white p-3">
+      <PanelLateral
+        titulo="Clases"
+        lado="izquierda"
+        plegado={clasesPlegado}
+        onAlternar={() => setClasesPlegado((valor) => !valor)}
+      >
         <Palette />
-      </aside>
+      </PanelLateral>
 
       <main className="relative min-w-0 overflow-hidden">
         <UmlCanvas />
       </main>
 
-      <aside className="flex flex-col overflow-y-auto border-l border-slate-300 bg-white p-3">
+      <PanelLateral
+        titulo="Propiedades"
+        lado="derecha"
+        plegado={propiedadesPlegado}
+        onAlternar={() => setPropiedadesPlegado((valor) => !valor)}
+      >
         {/* Arriba del inspector: es lo que se usa sin mirar, y así no hay que buscarlo. */}
         <VozPanel />
 
         <div className="my-3 border-t border-slate-200" />
 
         <Inspector />
-      </aside>
+      </PanelLateral>
     </div>
   )
 }
