@@ -473,6 +473,15 @@ function censoDeElemento(ctx: Ctx, padre: Element, nodo: UmlNode, documento: Uml
         ea_guid: `{${guidDe(propiedad.id).replace(/_/g, '-')}}`,
       })
       hijo(ctx, entrada, 'properties', {
+        // El tipo del atributo va AQUÍ, no solo en el `<type>` de `ownedAttribute`. EA
+        // reconstruye su modelo desde este censo, no desde la parte UML estándar: sin este
+        // atributo las clases entran con todos sus campos sin tipo, sin que nada falle.
+        // Se omite cuando no hay tipo, que es lo que hace EA (ver `fixtures/ea-xmi21.xmi`,
+        // cuyos atributos son todos sin tipo y no llevan el atributo).
+        type:
+          propiedad.type === null || propiedad.type.trim() === ''
+            ? undefined
+            : propiedad.type.trim(),
         derived: propiedad.isDerived ? '1' : '0',
         precision: '0',
         collection: 'false',

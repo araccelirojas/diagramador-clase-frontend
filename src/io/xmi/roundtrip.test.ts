@@ -147,6 +147,46 @@ describe('ida y vuelta con el documento de referencia', () => {
 })
 
 /**
+ * El censo de `<xmi:Extension>`, que es de donde Enterprise Architect reconstruye su modelo.
+ *
+ * La ida y vuelta de arriba no cubre esto: nuestro lector saca el tipo del `<type>` de
+ * `ownedAttribute`, así que el roundtrip pasaba en verde mientras EA abría todas las clases
+ * con los campos sin tipo. Por eso aquí se afirma contra el TEXTO del fichero y no contra lo
+ * que devuelve nuestro propio importador.
+ */
+describe('el censo que lee Enterprise Architect', () => {
+  const original = createFullSampleDocument()
+  const xmi = documentToXmi(original)
+
+  /** `nombre:tipo` de cada `<attribute>` del censo, con `-` cuando no lleva tipo. */
+  const censoDelFichero = (): string[] =>
+    (xmi.match(/<attribute [^>]*>[\s\S]*?<\/attribute>/g) ?? [])
+      .map((bloque) => {
+        const nombre = /<attribute [^>]*name="([^"]*)"/.exec(bloque)?.[1] ?? '?'
+        const tipo = /<properties [^>]*\btype="([^"]*)"/.exec(bloque)?.[1] ?? null
+
+        return `${nombre}:${tipo ?? '-'}`
+      })
+      .sort()
+
+  const censoDelModelo = (): string[] =>
+    Object.values(original.nodes)
+      .flatMap((nodo) => nodo.compartments.attributes ?? [])
+      .filter((miembro) => miembro.kind === 'property')
+      .map((miembro) => {
+        const tipo = miembro.kind === 'property' ? miembro.type : null
+
+        return `${miembro.name}:${tipo === null || tipo.trim() === '' ? '-' : tipo.trim()}`
+      })
+      .sort()
+
+  it('lleva el tipo de cada atributo en <properties type="…">', () => {
+    expect(censoDelModelo().some((entrada) => !entrada.endsWith(':-'))).toBe(true)
+    expect(censoDelFichero()).toEqual(censoDelModelo())
+  })
+})
+
+/**
  * Lo que NO sobrevive, dicho a propósito.
  *
  * Son decisiones, no descuidos: si mañana alguien las arregla, estos tests fallan y le
