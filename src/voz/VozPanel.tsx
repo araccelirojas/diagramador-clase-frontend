@@ -1,6 +1,7 @@
 import { Check, Loader2, Mic, MicOff, Phone, PhoneOff, TriangleAlert } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 
+import { usePresenceStore } from '@/sync/usePresenceStore'
 import { useVozAgent, type Estado, type Turno } from '@/voz/useVozAgent'
 
 /**
@@ -105,6 +106,13 @@ export function VozPanel() {
   const finDeLista = useRef<HTMLDivElement>(null)
 
   const enLlamada = estado !== 'inactivo' && estado !== 'error'
+
+  // Para la sala (CU-01): con el micrófono abierto, los demás te ven "grabando".
+  const setRecording = usePresenceStore((state) => state.setRecording)
+  useEffect(() => {
+    setRecording('agente-de-voz', enLlamada)
+    return () => setRecording('agente-de-voz', false)
+  }, [enLlamada, setRecording])
 
   // La conversación crece por abajo: sin esto habría que bajar a mano en cada frase.
   useEffect(() => {

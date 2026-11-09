@@ -13,6 +13,7 @@ import {
   setEdgeWaypoints,
   setNodePosition,
   updateMember,
+  type Command,
 } from '@/state/commands'
 import { useDiagramStore } from '@/state/useDiagramStore'
 import {
@@ -23,7 +24,7 @@ import {
   createProperty,
 } from '@/uml/model/factories'
 import { compartmentIdsOf, getClassifier, RELATIONS } from '@/uml/registry'
-import type { UmlNode, Visibility } from '@/uml/model/types'
+import type { UmlDocument, UmlNode, Visibility } from '@/uml/model/types'
 import { detallarNodo, resumirDiagrama } from '@/voz/resumen'
 import { resaltar } from '@/voz/resaltado'
 import { resolverNodo, resolverPorNombre, resolverRelacion } from '@/voz/resolverNombre'
@@ -57,8 +58,33 @@ const VISIBILIDADES: Record<string, Visibility> = {
   paquete: '~',
 }
 
-const doc = () => useDiagramStore.getState().doc
-const despachar = useDiagramStore.getState().dispatch
+/**
+ * Sobre qué documento trabajan las herramientas. Normalmente, el del store: lo que hacen
+ * se ve y viaja a la sala al instante. Para una propuesta de la IA del chat (CU-04) se
+ * cambia por una copia de trabajo, y los comandos se juntan en un solo lote que se vota.
+ */
+export type Destino = { doc: () => UmlDocument; despachar: (comando: Command) => void }
+
+const enElStore: Destino = {
+  doc: () => useDiagramStore.getState().doc,
+  despachar: (comando) => useDiagramStore.getState().dispatch(comando),
+}
+
+let destino: Destino = enElStore
+
+const doc = () => destino.doc()
+const despachar = (comando: Command) => destino.despachar(comando)
+
+/** Corre `trabajo` con las herramientas apuntando a `otro`, y vuelve al store siempre. */
+export function sobreDestino<T>(otro: Destino, trabajo: () => T): T {
+  const anterior = destino
+  destino = otro
+  try {
+    return trabajo()
+  } finally {
+    destino = anterior
+  }
+}
 
 /** Traduce el resultado de resolver un nombre a un error que el agente sepa contar. */
 function exigirNodo(nombre: string): UmlNode | Resultado {

@@ -2,6 +2,7 @@ import type { Edge, Node } from '@xyflow/react'
 
 import { SEPARACION_PARALELAS } from '@/canvas/edges/geometry'
 import type { DiagramState } from '@/state/useDiagramStore'
+import { participantColor, type Participant } from '@/sync/presence'
 import type { UmlDocument, UmlEdge, UmlNode } from '@/uml/model/types'
 
 /**
@@ -17,6 +18,10 @@ export type UmlEdgeData = {
   edge: UmlEdge
   /** Cuánto apartarla de las demás que unen su mismo par de clases. Ver `separarParalelas`. */
   separacion: number
+  /** Someone else in the room has it selected (CU-01): drawn as a halo in their color. */
+  remoteColor?: string
+  /** Changed by the AI and still being voted on (CU-04): drawn dashed in violet. */
+  provisional?: boolean
 }
 
 export type UmlFlowNode = Node<UmlNodeData>
@@ -180,4 +185,131 @@ export function selectIncidentEdgeIds(state: DiagramState, nodeId: string): stri
   return Object.values(state.doc.edges)
     .filter((edge) => edge.source === nodeId || edge.target === nodeId)
     .map((edge) => edge.id)
+}
+
+/* ------------------------------------------------------------------------ */
+/* Remote selections (CU-01)                                                 */
+/* ------------------------------------------------------------------------ */
+
+export type RemoteHighlight = { idSocket: string; color: string; nombre: string }
+
+export type RemoteHighlights = {
+  nodes: ReadonlyMap<string, RemoteHighlight[]>
+  edges: ReadonlyMap<string, RemoteHighlight[]>
+}
+
+export const NO_REMOTE_HIGHLIGHTS: RemoteHighlights = { nodes: new Map(), edges: new Map() }
+
+/**
+ * Which elements other people in the room have selected, and by whom. This
+ * client's own selection is not here: it already has its own blue.
+ */
+export function selectRemoteHighlights(
+  participants: Readonly<Record<string, Participant>>,
+  selfId: string | null,
+): RemoteHighlights {
+  const nodes = new Map<string, RemoteHighlight[]>()
+  const edges = new Map<string, RemoteHighlight[]>()
+
+  const add = (map: Map<string, RemoteHighlight[]>, id: string, highlight: RemoteHighlight) => {
+    const list = map.get(id)
+    if (list) list.push(highlight)
+    else map.set(id, [highlight])
+  }
+
+  for (const participant of Object.values(participants)) {
+    if (participant.idSocket === selfId || participant.estado === 'desconectado') continue
+
+    const highlight = {
+      idSocket: participant.idSocket,
+      color: participantColor(participant.idUsuario),
+      nombre: participant.nombre,
+    }
+
+    for (const id of participant.seleccion.nodos) add(nodes, id, highlight)
+    for (const id of participant.seleccion.aristas) add(edges, id, highlight)
+  }
+
+  return nodes.size === 0 && edges.size === 0 ? NO_REMOTE_HIGHLIGHTS : { nodes, edges }
+}
+
+/**
+ * A ring per person around the box, outermost last. A box-shadow and not a
+ * border: it does not take room, so the box does not grow a pixel and the
+ * edges anchored to its border do not shift.
+ */
+export function withRemoteNodeHighlights(
+  nodes: UmlFlowNode[],
+  highlights: RemoteHighlights,
+): UmlFlowNode[] {
+  if (highlights.nodes.size === 0) return nodes
+
+  return nodes.map((node) => {
+    const list = highlights.nodes.get(node.id)
+    if (!list) return node
+
+    const rings = list.map((h, index) => `0 0 0 ${2 * (index + 1)}px ${h.color}`).join(', ')
+    return { ...node, style: { ...node.style, boxShadow: rings } }
+  })
+}
+
+/** One halo per edge: the first person who selected it. */
+export function withRemoteEdgeHighlights(
+  edges: UmlFlowEdge[],
+  highlights: RemoteHighlights,
+): UmlFlowEdge[] {
+  if (highlights.edges.size === 0) return edges
+
+  return edges.map((edge) => {
+    const first = highlights.edges.get(edge.id)?.[0]
+    if (!first || !edge.data) return edge
+
+    return { ...edge, data: { ...edge.data, remoteColor: first.color } }
+  })
+}
+
+/* ------------------------------------------------------------------------ */
+/* Provisional AI changes (CU-04)                                            */
+/* ------------------------------------------------------------------------ */
+
+export type ProvisionalMarks = { nodes: ReadonlySet<string>; edges: ReadonlySet<string> }
+
+export const NO_PROVISIONAL: ProvisionalMarks = { nodes: new Set(), edges: new Set() }
+
+/** The violet of everything the AI does, here and in the chat. */
+export const PROVISIONAL_COLOR = '#8b5cf6'
+
+/** What the AI changed, while the room is still voting on it. Nothing once it closed. */
+export function selectProvisional(
+  vote: { estado: string; nodos: string[]; aristas: string[] } | null,
+): ProvisionalMarks {
+  if (!vote || vote.estado !== 'abierta') return NO_PROVISIONAL
+  if (vote.nodos.length === 0 && vote.aristas.length === 0) return NO_PROVISIONAL
+
+  return { nodes: new Set(vote.nodos), edges: new Set(vote.aristas) }
+}
+
+/**
+ * A dashed outline a few pixels out. An outline, like the remote rings, takes
+ * no room: the box keeps its size and the edges anchored to it do not move.
+ */
+export function withProvisionalNodes(nodes: UmlFlowNode[], marks: ProvisionalMarks): UmlFlowNode[] {
+  if (marks.nodes.size === 0) return nodes
+
+  return nodes.map((node) =>
+    marks.nodes.has(node.id)
+      ? {
+          ...node,
+          style: { ...node.style, outline: `2px dashed ${PROVISIONAL_COLOR}`, outlineOffset: 6 },
+        }
+      : node,
+  )
+}
+
+export function withProvisionalEdges(edges: UmlFlowEdge[], marks: ProvisionalMarks): UmlFlowEdge[] {
+  if (marks.edges.size === 0) return edges
+
+  return edges.map((edge) =>
+    marks.edges.has(edge.id) && edge.data ? { ...edge, data: { ...edge.data, provisional: true } } : edge,
+  )
 }

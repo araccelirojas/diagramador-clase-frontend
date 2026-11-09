@@ -14,11 +14,14 @@ export function Modal({
   description,
   onClose,
   children,
+  size = 'md',
 }: {
   title: string
   description?: string
   onClose: () => void
   children: ReactNode
+  /** `xl` for content that needs room, like a diagram preview. */
+  size?: 'md' | 'xl'
 }) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -45,7 +48,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-lg rounded-lg border border-slate-200 bg-white shadow-xl"
+        className={`w-full ${size === 'xl' ? 'max-w-5xl' : 'max-w-lg'} rounded-lg border border-slate-200 bg-white shadow-xl`}
         // The click that closes belongs to the backdrop, not to the card.
         onClick={(event) => event.stopPropagation()}
       >
