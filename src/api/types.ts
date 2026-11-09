@@ -73,3 +73,66 @@ export type Invitacion = {
     idUsuario: string
   }
 }
+
+/** `AutorMensaje` in the Prisma schema: a person, or the room's AI (CU-02). */
+export type AutorMensaje = 'USUARIO' | 'IA'
+
+/** `TipoMensaje`. VOZ arrives with CU-03. */
+export type TipoMensaje = 'TEXTO' | 'VOZ'
+
+/** One chat message, as `mensaje.repository` returns it. */
+export type Mensaje = {
+  idMensaje: string
+  idProyecto: string
+  autor: AutorMensaje
+  tipo: TipoMensaje
+  texto: string
+  /** ISO timestamp, set by the server. */
+  fecha: string
+  /** The id the sender's client gave it before sending; null for the AI. */
+  idCliente: string | null
+  /** AI replies only: the question they answer. */
+  respondeA: string | null
+  /** Who wrote it. Null for the AI, and for a deleted account. */
+  usuario: Pick<Usuario, 'idUsuario' | 'nombre'> | null
+  /** AI replies only: whoever asked. */
+  mencionA: Pick<Usuario, 'idUsuario' | 'nombre'> | null
+  /** Voice notes (CU-03): the audio is fetched by message id, never by URL. */
+  tieneAudio: boolean
+  /** Measured while recording; null for AI replies (the player reads it from the file). */
+  duracionMs: number | null
+  /** What a voice note says. Null while it is being transcribed, or if that failed. */
+  transcripcion: string | null
+}
+
+/** `GET /proyectos/:id/mensajes`: oldest first, and whether there is more further back. */
+export type PaginaMensajes = {
+  mensajes: Mensaje[]
+  hayMas: boolean
+}
+
+/* Version history (CU-05) ------------------------------------------------- */
+
+/** `OrigenVersion`: who or what made the version. */
+export type OrigenVersion = 'MANUAL' | 'AUTOMATICA' | 'IA' | 'RESTAURACION'
+
+/** One version in the list: no content, which is fetched one at a time. */
+export type VersionResumen = {
+  idVersion: string
+  idProyecto: string
+  numero: number
+  origen: OrigenVersion
+  nombre: string | null
+  clases: number
+  relaciones: number
+  fecha: string
+  usuario: { idUsuario: string; nombre: string } | null
+}
+
+/** A version with its diagram, the same object as `Proyecto.contenido`. */
+export type Version = VersionResumen & { contenido: unknown }
+
+export type PaginaVersiones = {
+  versiones: VersionResumen[]
+  hayMas: boolean
+}

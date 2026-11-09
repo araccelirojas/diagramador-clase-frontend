@@ -6,14 +6,13 @@ import {
   Controls,
   MiniMap,
   ReactFlow,
-  ReactFlowProvider,
   useReactFlow,
   type Connection,
   type EdgeChange,
   type NodeChange,
   type Viewport,
 } from '@xyflow/react'
-import { useCallback, useMemo, useState, type MouseEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type MouseEvent, type PointerEvent } from 'react'
 
 import { AssociationLinks } from '@/canvas/AssociationLinks'
 import { canConnect } from '@/canvas/interaction/connectionRules'
@@ -25,14 +24,25 @@ import { usePaletteDrop } from '@/canvas/interaction/usePaletteDrop'
 import { edgeTypes } from '@/canvas/edgeTypes'
 import { UmlMarkers } from '@/canvas/markers/UmlMarkers'
 import { nodeTypes } from '@/canvas/nodeTypes'
+import { ProvisionalTags } from '@/canvas/ProvisionalTags'
+import { RemotePresence } from '@/canvas/RemotePresence'
+import { useVoteStore } from '@/ia/useVoteStore'
+import { throttle } from '@/lib/throttle'
 import { removeEdges, removeNodes, resizeNode, setNodePosition, setViewport } from '@/state/commands'
 import {
   selectFlowEdges,
   selectFlowNodes,
+  selectProvisional,
+  selectRemoteHighlights,
+  withProvisionalEdges,
+  withProvisionalNodes,
+  withRemoteEdgeHighlights,
+  withRemoteNodeHighlights,
   type UmlFlowEdge,
   type UmlFlowNode,
 } from '@/state/selectors'
 import { useDiagramStore } from '@/state/useDiagramStore'
+import { sendEphemeral, usePresenceStore } from '@/sync/usePresenceStore'
 import { CanvasNotice } from '@/ui/CanvasNotice'
 
 /**
@@ -72,17 +82,22 @@ const GRID_SIZE = 8
 /** Small moves must not start a drag, or a double click never lands. */
 const DRAG_THRESHOLD = 4
 
+/** At most one cursor message per this many ms (CU-01). */
+const CURSOR_INTERVAL_MS = 50
+
 /**
- * The React Flow instance. This is the ONE place where canvas events are
+ * The React Flow instance. Needs a `<ReactFlowProvider>` above it: `App` puts
+ * it around the whole editor so the header can move the viewport too (CU-01,
+ * "center on a participant"). This is the ONE place where canvas events are
  * translated into commands (CLAUDE.md §6.3); no business logic lives here.
  *
  * Dragging emits dozens of events per second. Only the last one is a document
  * change: while the gesture runs the positions live in ephemeral local state,
  * so a whole drag is a single undo step and the document stays clean.
  */
-function Canvas() {
+export function UmlCanvas() {
   const storeNodes = useDiagramStore(selectFlowNodes)
-  const edges = useDiagramStore(selectFlowEdges)
+  const storeEdges = useDiagramStore(selectFlowEdges)
   const dispatch = useDiagramStore((state) => state.dispatch)
   const activeDiagramId = useDiagramStore((state) => state.activeDiagramId)
   const tool = useDiagramStore((state) => state.tool)
@@ -102,17 +117,63 @@ function Canvas() {
    */
   const [measured, setMeasured] = useState<Record<string, { width: number; height: number }>>({})
 
+  // What other people in the room have selected: rings on boxes, halos on
+  // edges. Presence is its own store, so a cursor moving does not land here.
+  const participants = usePresenceStore((state) => state.participants)
+  const selfId = usePresenceStore((state) => state.selfId)
+  const remoteHighlights = useMemo(
+    () => selectRemoteHighlights(participants, selfId),
+    [participants, selfId],
+  )
+
+  // What the AI changed while the room votes on it (CU-04).
+  const vote = useVoteStore((state) => state.vote)
+  const provisional = useMemo(() => selectProvisional(vote), [vote])
+
   const nodes = useMemo(() => {
     const base = gestureNodes ?? storeNodes
 
-    return base.map((node) => {
+    const withSizes = base.map((node) => {
       const size = measured[node.id]
       return size === undefined ? node : { ...node, measured: size }
     })
-  }, [gestureNodes, storeNodes, measured])
+
+    return withProvisionalNodes(withRemoteNodeHighlights(withSizes, remoteHighlights), provisional)
+  }, [gestureNodes, storeNodes, measured, remoteHighlights, provisional])
+
+  const edges = useMemo(
+    () => withProvisionalEdges(withRemoteEdgeHighlights(storeEdges, remoteHighlights), provisional),
+    [storeEdges, remoteHighlights, provisional],
+  )
 
   const { onDragOver, onDrop } = usePaletteDrop()
   const { screenToFlowPosition } = useReactFlow()
+
+  /**
+   * The pointer goes out in WORLD coordinates, so it lands on the same spot of
+   * the diagram whatever the other person's pan and zoom are.
+   */
+  const sendCursor = useMemo(
+    () =>
+      throttle((x: number, y: number) => sendEphemeral({ tipo: 'cursor', cursor: { x, y } }), CURSOR_INTERVAL_MS),
+    [],
+  )
+
+  useEffect(() => () => sendCursor.cancel(), [sendCursor])
+
+  const onPointerMove = useCallback(
+    (event: PointerEvent) => {
+      const point = screenToFlowPosition({ x: event.clientX, y: event.clientY })
+      sendCursor(point.x, point.y)
+    },
+    [screenToFlowPosition, sendCursor],
+  )
+
+  const onPointerLeave = useCallback(() => {
+    // A late trailing position must not resurrect the cursor after it left.
+    sendCursor.cancel()
+    sendEphemeral({ tipo: 'cursor', cursor: null })
+  }, [sendCursor])
   const createClassifier = useCreateClassifier()
   const createRelation = useCreateRelation()
   const addMemberTo = useAddMember()
@@ -281,7 +342,13 @@ function Canvas() {
   )
 
   return (
-    <div className="relative h-full w-full" onDragOver={onDragOver} onDrop={onDrop}>
+    <div
+      className="relative h-full w-full"
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onPointerMove={onPointerMove}
+      onPointerLeave={onPointerLeave}
+    >
       <UmlMarkers />
       <CanvasNotice />
 
@@ -313,6 +380,8 @@ function Canvas() {
         className="bg-slate-50"
       >
         <AssociationLinks />
+        <RemotePresence highlights={remoteHighlights} />
+        <ProvisionalTags marks={provisional} />
         <Background variant={BackgroundVariant.Dots} gap={GRID_SIZE} size={1} />
         {/*
           * The default node fill is #e2e2e2 on a white panel, which is barely
@@ -332,14 +401,5 @@ function Canvas() {
         <Controls />
       </ReactFlow>
     </div>
-  )
-}
-
-/** The provider stays here so canvas hooks work in the whole subtree. */
-export function UmlCanvas() {
-  return (
-    <ReactFlowProvider>
-      <Canvas />
-    </ReactFlowProvider>
   )
 }

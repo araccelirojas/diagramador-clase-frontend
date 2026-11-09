@@ -4,7 +4,7 @@ import { edgeGeometry, labelAnchor, type Rect } from '@/canvas/edges/geometry'
 import { useWaypointDrag } from '@/canvas/edges/useWaypointDrag'
 import { WaypointHandles } from '@/canvas/edges/WaypointHandles'
 import { markerUrl } from '@/canvas/markers/markerIds'
-import type { UmlFlowEdge } from '@/state/selectors'
+import { PROVISIONAL_COLOR, type UmlFlowEdge } from '@/state/selectors'
 import type { AssociationEnd, UmlEdge as UmlEdgeModel } from '@/uml/model/types'
 import { getRelation, type RelationSpec } from '@/uml/registry'
 
@@ -63,9 +63,22 @@ type EdgeBodyProps = {
   targetRect: Rect
   separacion: number
   isSelected: boolean
+  /** Selected by someone else in the room (CU-01). Generic presence, not per relation kind. */
+  remoteColor: string | undefined
+  /** Changed by the AI and still being voted on (CU-04). */
+  provisional: boolean
 }
 
-function EdgeBody({ id, edge, sourceRect, targetRect, separacion, isSelected }: EdgeBodyProps) {
+function EdgeBody({
+  id,
+  edge,
+  sourceRect,
+  targetRect,
+  separacion,
+  isSelected,
+  remoteColor,
+  provisional,
+}: EdgeBodyProps) {
   const spec = getRelation(edge.kind)
   const drag = useWaypointDrag(edge)
 
@@ -105,6 +118,30 @@ function EdgeBody({ id, edge, sourceRect, targetRect, separacion, isSelected }: 
 
   return (
     <>
+      {remoteColor ? (
+        <path
+          d={path}
+          fill="none"
+          stroke={remoteColor}
+          strokeWidth={7}
+          strokeOpacity={0.35}
+          strokeLinecap="round"
+          className="pointer-events-none"
+        />
+      ) : null}
+
+      {provisional ? (
+        <path
+          d={path}
+          fill="none"
+          stroke={PROVISIONAL_COLOR}
+          strokeWidth={6}
+          strokeOpacity={0.45}
+          strokeDasharray="6 5"
+          className="pointer-events-none"
+        />
+      ) : null}
+
       <BaseEdge
         id={id}
         path={path}
@@ -166,6 +203,8 @@ export function UmlEdge({ id, source, target, data, selected }: EdgeProps<UmlFlo
       targetRect={rectOf(targetNode)}
       separacion={data.separacion}
       isSelected={selected === true}
+      remoteColor={data.remoteColor}
+      provisional={data.provisional === true}
     />
   )
 }
