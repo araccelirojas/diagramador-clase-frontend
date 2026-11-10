@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <meta name="description" content="Guía visual paso a paso de Diagramador UML: proyectos, editor, colaboración, intercambio de diagramas, Spring Boot, IA y versiones.">
+ <meta name="color-scheme" content="light">
+ <title>Manual de Usuario · Diagramador UML</title>
+ <link rel="stylesheet" href="styles.css">
+ <script src="manual.js" defer></script>
+</head>
+<body>
+<!-- Versión visual de ../manual-usuario.md. Las funciones y limitaciones se contrastan con ../manual-usuario-checklist.md. -->
+<svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+ <symbol id="i-model" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M7 6h6M7 12h3M7 18h7"/></symbol>
+ <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/><path d="M3 9h18"/></symbol>
+ <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M17 4a3 3 0 0 1 0 6M18 13a5 5 0 0 1 3 5v3"/></symbol>
+ <symbol id="i-exchange" viewBox="0 0 24 24"><path d="M4 7h16l-4-4M20 17H4l4 4M20 7l-4 4M4 17l4-4"/></symbol>
+ <symbol id="i-package" viewBox="0 0 24 24"><path d="m12 2 10 5v10l-10 5-10-5V7l10-5ZM2 7l10 5 10-5M12 12v10M7 4.5l10 5"/></symbol>
+ <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3ZM20 2v4M18 4h4"/></symbol>
+ <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7M12 7v5l3 2"/></symbol>
+ <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H3V9h18v9h-3M6 14h12v7H6zM17 11h1"/></symbol>
+ <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></symbol>
+ <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 5-5 4 4 4-6 5 7"/></symbol>
+</defs></svg>
+<a class="skip-link" href="#primeros-pasos">Ir al contenido del manual</a>
+<header class="topbar">
+ <a class="brand" href="#portada"><span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#i-model"></use></svg></span><span>Diagramador UML</span><small>Documentación de usuario</small></a>
+ <div class="top-actions"><a class="source-link" href="../manual-usuario.md">Versión documental ↗</a><button class="button" id="print-manual" type="button"><svg class="icon" aria-hidden="true"><use href="#i-print"></use></svg> Imprimir / PDF</button></div>
+</header>
+<aside class="sidebar" aria-label="Índice del manual">
+ <p class="nav-heading">Contenido del manual</p>
+ <nav class="chapter-nav" aria-label="Capítulos"><ol><li><a href="#primeros-pasos"><span class="nav-number">01</span>Primeros pasos</a></li>
+<li><a href="#proyectos"><span class="nav-number">02</span>Gestión de proyectos</a></li>
+<li><a href="#editor"><span class="nav-number">03</span>Editor UML</a></li>
+<li><a href="#colaboracion"><span class="nav-number">04</span>Colaboración</a></li>
+<li><a href="#intercambio"><span class="nav-number">05</span>Importar y exportar</a></li>
+<li><a href="#bocetos"><span class="nav-number">06</span>Importar bocetos</a></li>
+<li><a href="#springboot"><span class="nav-number">07</span>Generar Spring Boot</a></li>
+<li><a href="#agente"><span class="nav-number">08</span>Agente virtual</a></li>
+<li><a href="#chat"><span class="nav-number">09</span>Chat e IA</a></li>
+<li><a href="#versiones"><span class="nav-number">10</span>Versiones</a></li>
+<li><a href="#problemas"><span class="nav-number">11</span>Solución de problemas</a></li>
+<li><a href="#glosario"><span class="nav-number">12</span>Glosario</a></li></ol></nav>
+ <div class="reading-status"><p><span>Su recorrido</span><span id="reading-label">Por comenzar</span></p><progress id="reading-progress" max="12" value="0" aria-label="Capítulos recorridos"></progress></div>
+</aside>
+<div class="mobile-nav"><label for="chapter-select">Ir a</label><select id="chapter-select" aria-label="Sección del manual"><option value="portada">Portada</option><option value="primeros-pasos">1. Primeros pasos</option>
+<option value="proyectos">2. Gestión de proyectos</option>
+<option value="editor">3. Editor UML</option>
+<option value="colaboracion">4. Colaboración</option>
+<option value="intercambio">5. Importar y exportar</option>
+<option value="bocetos">6. Importar bocetos</option>
+<option value="springboot">7. Generar Spring Boot</option>
+<option value="agente">8. Agente virtual</option>
+<option value="chat">9. Chat e IA</option>
+<option value="versiones">10. Versiones</option>
+<option value="problemas">11. Solución de problemas</option>
+<option value="glosario">12. Glosario</option></select></div>
+<main id="contenido"><div class="content">
+<section class="cover" id="portada" aria-labelledby="titulo-portada">
+ <p class="eyebrow">Diagramador UML · Guía visual</p>
+ <h1 id="titulo-portada">Manual de Usuario</h1>
+ <p class="cover-lead">Guía paso a paso para crear, editar, compartir e intercambiar diagramas UML utilizando Diagramador UML.</p>
+ <div class="cover-actions"><a class="button button-primary" href="#crear-cuenta">Comenzar <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a><span class="cover-meta">12 capítulos · 19 guías<br>15 capturas reales del sistema</span></div>
+ <div class="area-grid" aria-label="Áreas del manual"><a class="area-card" href="#proyectos"><svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg><span>Proyectos</span></a>
+<a class="area-card" href="#editor"><svg class="icon" aria-hidden="true"><use href="#i-model"></use></svg><span>Modelado UML</span></a>
+<a class="area-card" href="#colaboracion"><svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg><span>Colaboración</span></a>
+<a class="area-card" href="#intercambio"><svg class="icon" aria-hidden="true"><use href="#i-exchange"></use></svg><span>Importación y exportación</span></a>
+<a class="area-card" href="#springboot"><svg class="icon" aria-hidden="true"><use href="#i-package"></use></svg><span>Generación Spring Boot</span></a>
+<a class="area-card" href="#agente"><svg class="icon" aria-hidden="true"><use href="#i-spark"></use></svg><span>Inteligencia Artificial</span></a>
+<a class="area-card" href="#versiones"><svg class="icon" aria-hidden="true"><use href="#i-history"></use></svg><span>Versiones</span></a></div>
+ <nav class="route" aria-label="Progreso del recorrido"><p class="route-label">De su primera cuenta a un proyecto compartido</p><ol><li><a href="#primeros-pasos">Primeros pasos</a></li><li><a href="#proyectos">Proyectos</a></li><li><a href="#editor">Editor</a></li><li><a href="#colaboracion">Colaboración</a></li><li><a href="#intercambio">Exportación</a></li><li><a href="#agente">IA</a></li><li><a href="#versiones">Versiones</a></li></ol></nav>
+</section>
+<section class="chapter" id="primeros-pasos" aria-labelledby="titulo-primeros-pasos">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">01</span><div><h2 id="titulo-primeros-pasos">Primeros pasos</h2><p>Cree su cuenta y conozca el espacio donde comienzan sus diagramas.</p></div></header>
+ <article class="procedure" id="crear-cuenta"><p class="guide-label">Guía 01</p><h3>Crear una cuenta</h3><div class="visual-flow"><div><p class="lead">crear una cuenta para guardar y compartir diagramas.</p>
+<p class="steps-label">Pasos 1–5</p>
+<ol class="steps"><li>Abra la aplicación.</li>
+<li>En la pantalla <strong>Inicia sesión</strong>, presione <strong>Crea una</strong>.</li>
+<li>Complete <strong>Nombre</strong>, <strong>Correo</strong>, <strong>Contraseña</strong> y <strong>Repite la contraseña</strong>.</li>
+<li>La contraseña debe tener al menos 8 caracteres.</li>
+<li>Presione <strong>Crear cuenta</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>la cuenta se crea, la sesión se inicia automáticamente y se muestra la pantalla de proyectos.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>si el correo ya está registrado, el formulario lo indicará junto al campo <strong>Correo</strong>.</p></div></div>
+<figure id="figura-1" class="capture portrait">
+  <a class="capture-link" href="images/01-registro.png" aria-label="Ampliar: Formulario para crear una cuenta."><img src="images/01-registro.png" width="582" height="737" alt="Formulario para crear una cuenta." decoding="async"></a>
+  <figcaption><strong>Figura 1. Formulario para crear una cuenta.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+</div></article><article class="procedure" id="iniciar-sesion"><p class="guide-label">Guía 02</p><h3>Iniciar sesión</h3><div class="visual-flow"><div><p class="lead">ingresar a los proyectos de una cuenta existente.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>Abra la aplicación.</li>
+<li>Escriba su <strong>Correo</strong> y <strong>Contraseña</strong>.</li>
+<li>Presione <strong>Entrar</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>se muestra la pantalla principal con los proyectos propios y los proyectos compartidos.</p></div></div>
+<figure id="figura-2" class="capture">
+  <a class="capture-link" href="images/02-login.png" aria-label="Ampliar: Formulario de inicio de sesión."><img src="images/02-login.png" width="783" height="742" alt="Formulario de inicio de sesión." decoding="async"></a>
+  <figcaption><strong>Figura 2. Formulario de inicio de sesión.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+</div></article><article class="procedure" id="pantalla-principal"><p class="guide-label">Guía 03</p><h3>Conocer la pantalla principal</h3><p>La pantalla principal muestra el nombre de la persona conectada y su <strong>UUID</strong>, que es el identificador utilizado para recibir invitaciones.</p>
+<p>Los proyectos se separan en dos grupos:</p>
+<ul><li><strong>Mis proyectos:</strong> proyectos creados por la persona conectada.</li>
+<li><strong>Proyectos invitados:</strong> proyectos de otras personas a los que se obtuvo acceso al aceptar una invitación. Estas tarjetas llevan la indicación <strong>Compartido</strong> y muestran el nombre del dueño.</li></ul>
+<p>Las acciones visibles son:</p>
+<ul><li><strong>Copiar:</strong> copia el UUID propio.</li>
+<li><strong>Importar boceto:</strong> inicia la reconstrucción de un diagrama desde una imagen.</li>
+<li><strong>Nuevo proyecto:</strong> crea un proyecto vacío.</li>
+<li><strong>Invitaciones:</strong> muestra las invitaciones recibidas.</li>
+<li><strong>Cerrar sesión:</strong> finaliza la sesión.</li></ul>
+
+<figure id="figura-3" class="capture">
+  <a class="capture-link" href="images/03-pantalla-principal.png" aria-label="Ampliar: Pantalla principal con proyectos propios, proyectos invitados y UUID."><img src="images/03-pantalla-principal.png" width="938" height="791" alt="Pantalla principal con proyectos propios, proyectos invitados y UUID." decoding="async"></a>
+  <figcaption><strong>Figura 3. Pantalla principal con proyectos propios, proyectos invitados y UUID.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+<details class="details"><summary>Cerrar sesión</summary><div class="subprocedure"><h4>Cerrar sesión</h4><p class="lead">finalizar la sesión actual.</p>
+<p class="steps-label">Pasos 1–2</p>
+<ol class="steps"><li>Regrese a la pantalla de proyectos.</li>
+<li>Presione <strong>Cerrar sesión</strong> en la parte superior derecha.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>la aplicación vuelve a la pantalla <strong>Inicia sesión</strong>.</p></div></div></details></article><details class="details"><summary>Antes de comenzar: propósito, usuarios y requisitos</summary><h4>Acerca de este manual</h4><p>Este manual explica cómo utilizar la aplicación <strong>Diagramador UML</strong> desde el registro de una cuenta hasta la creación, colaboración, importación, exportación y recuperación de diagramas. Está dirigido a personas usuarias; no requiere conocimientos de programación ni explica la construcción interna del sistema.</p><h4>La aplicación</h4><p>Diagramador UML permite crear diagramas de clases en un lienzo visual. Una persona puede crear clases e interfaces, añadir atributos y operaciones, relacionar los elementos, trabajar al mismo tiempo con otras personas y conservar el diagrama en línea.</p>
+<p>La aplicación también permite:</p>
+<ul><li>importar y exportar diagramas en JSON y XMI;</li>
+<li>reconstruir un diagrama a partir de una imagen o fotografía;</li>
+<li>conversar con una IA por texto o voz;</li>
+<li>solicitar a la IA cambios que el equipo confirma mediante votación;</li>
+<li>guardar y restaurar versiones;</li>
+<li>generar un backend Spring Boot descargable.</li></ul><div class="mini-grid"><div class="mini-card"><h4>Usuarios del sistema</h4><p>Todas las personas utilizan una cuenta registrada. Según el proyecto abierto, la misma persona puede actuar como:</p>
+<ul><li><strong>Dueño del proyecto:</strong> creó el proyecto, puede editarlo e invitar a otras personas.</li>
+<li><strong>Colaborador:</strong> aceptó una invitación y puede abrir y editar el proyecto compartido. No puede invitar a otras personas desde ese proyecto.</li></ul>
+<p>No existe una pantalla separada para administrar roles.</p></div><div class="mini-card"><h4>Requisitos</h4><p>Para utilizar la aplicación se necesita:</p>
+<ul><li>un navegador web moderno;</li>
+<li>conexión a Internet;</li>
+<li>una cuenta en la aplicación;</li>
+<li>permiso para usar el micrófono cuando se utilicen notas de voz o el agente virtual;</li>
+<li>acceso a descargas del navegador para exportar JSON, XMI o el backend Spring Boot.</li></ul>
+<p>Las funciones de boceto, chat con IA, voz y agente virtual también dependen de que el servicio de IA se encuentre disponible.</p></div></div></details>
+ <nav class="chapter-navigation" aria-label="Recorrido: Primeros pasos"><a href="#portada">← Anterior<span>Portada</span></a><a href="#proyectos">Siguiente →<span>Gestión de proyectos</span></a></nav>
+</section>
+<section class="chapter" id="proyectos" aria-labelledby="titulo-proyectos">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">02</span><div><h2 id="titulo-proyectos">Gestión de proyectos</h2><p>Organice su trabajo e invite a otras personas a participar.</p></div></header>
+ <article class="procedure" id="crear-proyecto"><p class="guide-label">Guía 04</p><h3>Crear un proyecto</h3><p class="lead">crear un espacio de trabajo vacío para un diagrama UML.</p>
+<p class="steps-label">Pasos 1–4</p>
+<ol class="steps"><li>Ingrese a la pantalla principal.</li>
+<li>Presione <strong>Nuevo proyecto</strong>.</li>
+<li>Escriba el nombre en <strong>Nombre del proyecto</strong>.</li>
+<li>Presione <strong>Crear y abrir</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>se crea el proyecto y se abre directamente el editor con un lienzo vacío.</p></div>
+
+<figure id="figura-4" class="capture">
+  <a class="capture-link" href="images/04-crear-proyecto.png" aria-label="Ampliar: Formulario de creación de un proyecto."><img src="images/04-crear-proyecto.png" width="1007" height="381" alt="Formulario de creación de un proyecto." decoding="async"></a>
+  <figcaption><strong>Figura 4. Formulario de creación de un proyecto.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+<details class="details"><summary>Abrir un proyecto propio o compartido</summary><div class="subprocedure"><h4>Abrir un proyecto propio</h4><p class="lead">continuar trabajando en un proyecto creado por usted.</p>
+<p class="steps-label">Pasos 1–2</p>
+<ol class="steps"><li>Localice el proyecto en <strong>Mis proyectos</strong>.</li>
+<li>Presione su tarjeta.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>se carga el diagrama y se abre el editor.</p></div></div><div class="subprocedure"><h4>Abrir un proyecto compartido</h4><p class="lead">colaborar en un proyecto de otra persona.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>Acepte primero la invitación correspondiente.</li>
+<li>Localice el proyecto en <strong>Proyectos invitados</strong>.</li>
+<li>Presione la tarjeta marcada como <strong>Compartido</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>se abre el editor del proyecto compartido.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>la interfaz actual no ofrece acciones para renombrar o eliminar proyectos. El campo de nombre de la barra del editor cambia el nombre del modelo UML, no el nombre de la tarjeta del proyecto.</p></div></div></details></article><article class="procedure" id="invitar-colaborador"><p class="guide-label">Guía 05</p><h3>Invitar a un colaborador</h3><div class="subprocedure"><h4>Primero: comparta su UUID</h4><p class="lead">entregar a un dueño de proyecto el identificador necesario para que pueda invitarle.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>En la pantalla principal, localice <strong>Tu UUID</strong>.</li>
+<li>Presione <strong>Copiar</strong>.</li>
+<li>Envíe el valor al dueño del proyecto por el medio que acuerden.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>el botón muestra <strong>Copiado</strong> y el identificador queda disponible para pegarlo.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>si el navegador impide copiar automáticamente, el valor queda seleccionado para copiarlo manualmente.</p></div></div><div class="subprocedure"><h4>Después: busque y confirme al colaborador</h4><p class="lead">permitir que otra persona colabore en un proyecto propio.</p>
+<p class="steps-label">Pasos 1–6</p>
+<ol class="steps"><li>Abra uno de sus proyectos.</li>
+<li>Presione <strong>Invitar</strong>.</li>
+<li>Pegue el <strong>UUID del usuario</strong>.</li>
+<li>Presione <strong>Buscar</strong>.</li>
+<li>Compruebe el nombre y correo encontrados.</li>
+<li>Presione <strong>Invitar</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>la invitación aparece en <strong>Invitaciones que enviaste</strong> con su estado.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>el botón <strong>Invitar</strong> está desactivado en proyectos de los que usted no es dueño.</p></div>
+
+<div class="capture-pending" role="note"><svg class="icon" aria-hidden="true"><use href="#i-image"></use></svg><div><strong>Captura pendiente</strong><p>Falta la captura de la búsqueda por UUID y el envío de la invitación. La imagen disponible con el número 05 muestra las invitaciones recibidas y se presenta en la siguiente guía.</p></div></div>
+</div><details class="details"><summary>Cancelar una invitación enviada</summary><div class="subprocedure"><h4>Cancelar una invitación enviada</h4><p class="lead">retirar una invitación que ya no debe estar disponible.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>Abra el proyecto y presione <strong>Invitar</strong>.</li>
+<li>En <strong>Invitaciones que enviaste</strong>, localice la invitación.</li>
+<li>Presione el icono cuyo texto de ayuda es <strong>Cancelar la invitación</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>la invitación se elimina de la lista.</p></div></div></details></article><article class="procedure" id="aceptar-invitacion"><p class="guide-label">Guía 06</p><h3>Aceptar o rechazar una invitación</h3><p class="lead">responder una invitación recibida.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>En la pantalla principal, presione <strong>Invitaciones</strong>.</li>
+<li>Localice una invitación con estado pendiente.</li>
+<li>Presione <strong>Aceptar</strong> para obtener acceso o <strong>Rechazar</strong> para no participar.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>al aceptar, el proyecto aparece en <strong>Proyectos invitados</strong>. Al rechazar, la invitación cambia de estado y no se concede acceso.</p></div>
+
+<figure id="figura-5" class="capture">
+  <a class="capture-link" href="images/05-invitaci%C3%B3n-colaborador.png" aria-label="Ampliar: Ventana de invitaciones recibidas sin invitaciones pendientes."><img src="images/05-invitaci%C3%B3n-colaborador.png" width="938" height="777" alt="Ventana de invitaciones recibidas sin invitaciones pendientes." decoding="async"></a>
+  <figcaption><strong>Figura 5. Ventana de invitaciones recibidas sin invitaciones pendientes.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+<figure id="figura-6" class="capture">
+  <a class="capture-link" href="images/06-invitaciones-recibidas.png" aria-label="Ampliar: Ventana para aceptar o rechazar invitaciones."><img src="images/06-invitaciones-recibidas.png" width="668" height="273" alt="Ventana para aceptar o rechazar invitaciones." decoding="async"></a>
+  <figcaption><strong>Figura 6. Ventana para aceptar o rechazar invitaciones.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+</article>
+ <nav class="chapter-navigation" aria-label="Recorrido: Gestión de proyectos"><a href="#primeros-pasos">← Anterior<span>Primeros pasos</span></a><a href="#editor">Siguiente →<span>Editor UML</span></a></nav>
+</section>
+<section class="chapter" id="editor" aria-labelledby="titulo-editor">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">03</span><div><h2 id="titulo-editor">Editor UML</h2><p>Pase de un lienzo vacío a un diagrama de clases completo.</p></div></header>
+ <article class="procedure" id="conocer-editor"><p class="guide-label">Guía 07</p><h3>Conocer el editor</h3><p>El editor está formado por:</p>
+<ul><li>una barra superior con <strong>Proyectos</strong>, nombre del modelo, <strong>Deshacer</strong>, <strong>Rehacer</strong>, importaciones, exportaciones, estado de guardado, participantes, <strong>Exportar backend</strong> e <strong>Invitar</strong>;</li>
+<li>el panel izquierdo <strong>Clases</strong>, que contiene la paleta de elementos;</li>
+<li>el lienzo central, con controles de zoom y minimapa;</li>
+<li>el panel derecho, con las pestañas <strong>Propiedades</strong>, <strong>Chat</strong> y <strong>Versiones</strong>.</li></ul>
+<p>Los paneles laterales se pueden ocultar y volver a mostrar con sus botones de plegado.</p>
+<p>El estado de guardado puede mostrar <strong>Cambios sin guardar</strong>, <strong>Guardando…</strong>, <strong>Guardado</strong> o <strong>No se pudo guardar</strong>.</p>
+
+<figure id="figura-7" class="capture">
+  <a class="capture-link" href="images/07-editor-uml-completo.png" aria-label="Ampliar: Interfaz principal del editor de diagramas."><img src="images/07-editor-uml-completo.png" width="1917" height="902" alt="Interfaz principal del editor de diagramas." decoding="async"></a>
+  <figcaption><strong>Figura 7. Interfaz principal del editor de diagramas.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+<div class="mini-grid"><div class="mini-card"><h4>Crear una clase o interfaz</h4><p class="lead">añadir un clasificador al diagrama.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>En el panel <strong>Clases</strong>, localice <strong>Clase</strong>, <strong>Clase abstracta</strong> o <strong>Interfaz</strong>.</li>
+<li>Utilice una de estas formas:<ul><li>arrastre el elemento hasta el lugar deseado del lienzo; o</li><li>presione el elemento y luego presione el lugar del lienzo donde desea crearlo.</li></ul></li>
+<li>Para volver al modo normal, presione <strong>Seleccionar</strong> o la tecla <code>Esc</code>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>aparece una nueva caja UML en el lienzo.</p></div></div><div class="mini-card"><h4>Configurar sus propiedades</h4><p class="lead">cambiar los datos generales de una clase o interfaz.</p>
+<p class="steps-label">Pasos 1–4</p>
+<ol class="steps"><li>Seleccione la caja.</li>
+<li>Abra la pestaña <strong>Propiedades</strong>.</li>
+<li>Modifique <strong>Nombre</strong>, <strong>Visibilidad</strong> o <strong>Estereotipos</strong>.</li>
+<li>En una clase, active <strong>Clase abstracta</strong> cuando corresponda.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>el elemento se actualiza en el lienzo.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>también puede hacer doble clic en el nombre mostrado dentro de la caja para editarlo.</p></div></div></div><details class="details"><summary>Mover, eliminar, deshacer y cambiar el nombre del modelo</summary><div class="subprocedure"><h4>Mover, redimensionar y acomodar elementos</h4><p class="lead">ordenar visualmente el diagrama.</p>
+<p class="steps-label">Pasos 1–5</p>
+<ol class="steps"><li>Active <strong>Seleccionar</strong>.</li>
+<li>Arrastre una clase para moverla.</li>
+<li>Utilice los controles de tamaño de la caja para redimensionarla.</li>
+<li>Con una relación seleccionada, arrastre los puntos de la línea para doblarla.</li>
+<li>Si una relación tiene puntos manuales, presione <strong>Enderezar</strong> para quitarlos.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>el diagrama adopta la nueva distribución.</p></div>
+<p>Atajos útiles:</p>
+<ul><li>flechas: mover la selección 1 unidad;</li>
+<li><code>Mayús</code> + flechas: mover 10 unidades;</li>
+<li><code>Ctrl</code> + <code>A</code>: seleccionar todo;</li>
+<li><code>Ctrl</code> + <code>0</code>: ajustar todo el diagrama a la vista.</li></ul></div><div class="subprocedure"><h4>Eliminar elementos</h4><p class="lead">quitar clases o relaciones seleccionadas.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>Active <strong>Seleccionar</strong>.</li>
+<li>Seleccione uno o varios elementos.</li>
+<li>Presione <code>Supr</code> o <code>Retroceso</code>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>los elementos desaparecen del diagrama.</p></div>
+<div class="callout warning"><div class="callout-title"><span aria-hidden="true">!</span> Advertencia</div><p>al eliminar una clase también pueden desaparecer sus relaciones. Si fue un error, utilice <strong>Deshacer</strong> inmediatamente.</p></div></div><div class="subprocedure"><h4>Deshacer y rehacer</h4><p class="lead">revertir o recuperar cambios locales del editor.</p>
+<p class="steps-label">Pasos 1–2</p>
+<ol class="steps"><li>Presione <strong>Deshacer</strong> o use <code>Ctrl</code> + <code>Z</code>.</li>
+<li>Presione <strong>Rehacer</strong>, <code>Ctrl</code> + <code>Mayús</code> + <code>Z</code> o <code>Ctrl</code> + <code>Y</code> para recuperar el cambio.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>el diagrama vuelve al estado anterior o posterior correspondiente.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>el historial de deshacer corresponde a sus acciones locales; no deshace una acción remota de otra persona.</p></div></div><div class="subprocedure"><h4>Cambiar el nombre del modelo</h4><p class="lead">cambiar el nombre interno del diagrama abierto.</p>
+<p class="steps-label">Pasos 1–2</p>
+<ol class="steps"><li>En la barra superior, edite el campo <strong>Nombre del modelo</strong> situado junto a <strong>Diagramador UML</strong>.</li>
+<li>Haga clic fuera del campo para finalizar la edición.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>el modelo adopta el nuevo nombre y se guarda con el diagrama.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>esta acción no cambia el nombre de la tarjeta del proyecto en la pantalla principal.</p></div></div></details></article><article class="procedure" id="atributos-operaciones"><p class="guide-label">Guía 08</p><h3>Crear atributos y operaciones</h3><div class="subprocedure"><h4>Agregar un atributo</h4><p class="lead">añadir una propiedad a una clase.</p>
+<p class="steps-label">Pasos 1–6</p>
+<ol class="steps"><li>Seleccione la clase.</li>
+<li>En <strong>Propiedades</strong>, ubique <strong>Atributos</strong>.</li>
+<li>Presione <strong>+ agregar</strong>.</li>
+<li>Complete <strong>Nombre</strong>, <strong>Tipo</strong> y <strong>Visibilidad</strong>.</li>
+<li>Active <strong>{id}</strong> si el atributo identifica a la clase y debe utilizarse como clave primaria al exportar el backend.</li>
+<li>Abra <strong>Más opciones</strong> si necesita multiplicidad, valor por defecto o modificadores como <code>static</code>, <code>derivado</code>, <code>readOnly</code>, <code>ordered</code> o <code>unique</code>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>el atributo aparece en el compartimento de atributos de la clase.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Alternativa</div><p>arrastre <strong>Atributo</strong> desde la paleta hasta una clase, o seleccione <strong>Atributo</strong> y luego presione la clase.</p></div></div><div class="subprocedure"><h4>Agregar una operación</h4><p class="lead">añadir una operación o método UML.</p>
+<p class="steps-label">Pasos 1–6</p>
+<ol class="steps"><li>Seleccione la clase o interfaz.</li>
+<li>En <strong>Propiedades</strong>, ubique <strong>Operaciones</strong>.</li>
+<li>Presione <strong>+ agregar</strong>.</li>
+<li>Complete <strong>Nombre</strong>, <strong>Retorno</strong> y <strong>Visibilidad</strong>.</li>
+<li>Para añadir argumentos, presione <strong>+ parámetro</strong> y configure su nombre, tipo, dirección y valor por defecto.</li>
+<li>En <strong>Más opciones</strong>, active <code>static</code>, <strong>abstracta</strong> o <code>query</code> si corresponde.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>la operación aparece en el compartimento de operaciones.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Alternativa</div><p>arrastre <strong>Operación</strong> desde la paleta hasta una clase, o selecciónela y luego presione la clase.</p></div>
+
+<figure id="figura-8" class="capture portrait">
+  <a class="capture-link" href="images/08-atributos-operaciones.png" aria-label="Ampliar: Edición de una clase desde la pestaña Propiedades."><img src="images/08-atributos-operaciones.png" width="727" height="850" alt="Edición de una clase desde la pestaña Propiedades." decoding="async"></a>
+  <figcaption><strong>Figura 8. Edición de una clase desde la pestaña Propiedades.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+</div><details class="details"><summary>Reordenar o eliminar miembros y parámetros</summary><div class="subprocedure"><h4>Reordenar o eliminar atributos, operaciones y parámetros</h4><p class="lead">organizar o quitar miembros de una clase.</p>
+<p class="steps-label">Pasos 1–4</p>
+<ol class="steps"><li>Seleccione la clase y abra el miembro en <strong>Propiedades</strong>.</li>
+<li>Use <strong>↑</strong> o <strong>↓</strong> para cambiar el orden de un atributo u operación.</li>
+<li>Presione <strong>✕</strong>, cuyo nombre accesible es <strong>Eliminar</strong>, para quitarlo.</li>
+<li>En un parámetro, presione <strong>✕</strong>, cuyo nombre accesible es <strong>Quitar parámetro</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>la lista y la caja UML se actualizan.</p></div></div></details></article><article class="procedure" id="relaciones-multiplicidades"><p class="guide-label">Guía 09</p><h3>Crear relaciones y multiplicidades</h3><div class="subprocedure"><h4>Crear una relación</h4><p class="lead">unir dos clasificadores mediante una relación UML.</p>
+<p>Relaciones disponibles:</p>
+<ul><li><strong>Asociación</strong>;</li>
+<li><strong>Asociación dirigida</strong>;</li>
+<li><strong>Agregación</strong>;</li>
+<li><strong>Composición</strong>;</li>
+<li><strong>Generalización</strong>;</li>
+<li><strong>Realización</strong>;</li>
+<li><strong>Clase de asociación</strong>.</li></ul>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>En <strong>Relaciones</strong>, seleccione el tipo deseado.</li>
+<li>Arrastre desde una clase hasta la otra; también puede presionar primero la clase de origen y luego la de destino.</li>
+<li>Presione <code>Esc</code> al terminar para volver a <strong>Seleccionar</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>se dibuja la relación. Si la combinación no es válida, aparece un aviso sobre el lienzo.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>al crear una <strong>Clase de asociación</strong>, el editor crea la relación y también una caja asociada, con multiplicidades <code>0..*</code> en ambos extremos de forma inicial.</p></div></div><div class="subprocedure"><h4>Configurar una relación y sus multiplicidades</h4><p class="lead">definir el significado y la presentación de una relación.</p>
+<p class="steps-label">Pasos 1–5</p>
+<ol class="steps"><li>Seleccione la línea de la relación.</li>
+<li>En <strong>Propiedades</strong>, configure el <strong>Nombre</strong> y la <strong>Lectura</strong> cuando estén disponibles.</li>
+<li>Elija el <strong>Trazado</strong>: <strong>Recta</strong>, <strong>Ortogonal</strong> o <strong>Curva</strong>.</li>
+<li>En <strong>Origen</strong> y <strong>Destino</strong>, complete <strong>Rol</strong> y <strong>Multiplicidad</strong>.</li>
+<li>Configure <strong>Visibilidad</strong>, <strong>Navegable</strong>, <code>ordered</code> y <code>unique</code> cuando corresponda.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>las etiquetas, multiplicidades y forma de la línea se actualizan.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>las relaciones de generalización y realización no muestran campos que no correspondan a su notación.</p></div>
+
+<figure id="figura-9" class="capture">
+  <a class="capture-link" href="images/09-relacion-multiplicidades.png" aria-label="Ampliar: Propiedades de una relación con sus extremos."><img src="images/09-relacion-multiplicidades.png" width="1127" height="826" alt="Propiedades de una relación con sus extremos." decoding="async"></a>
+  <figcaption><strong>Figura 9. Propiedades de una relación con sus extremos.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+</div></article>
+ <nav class="chapter-navigation" aria-label="Recorrido: Editor UML"><a href="#proyectos">← Anterior<span>Gestión de proyectos</span></a><a href="#colaboracion">Siguiente →<span>Colaboración</span></a></nav>
+</section>
+<section class="chapter" id="colaboracion" aria-labelledby="titulo-colaboracion">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">04</span><div><h2 id="titulo-colaboracion">Colaboración</h2><p>Comparta el mismo diagrama y ubique el trabajo de su equipo.</p></div></header>
+ <article class="procedure" id="trabajo-compartido"><p class="guide-label">Guía 10</p><h3>Trabajar con otros usuarios</h3><p class="lead">editar un proyecto con otras personas al mismo tiempo.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>El dueño invita a las demás personas y ellas aceptan.</li>
+<li>Cada participante abre el mismo proyecto.</li>
+<li>Realicen cambios normalmente en el editor.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>clases, relaciones, movimientos y ediciones se actualizan en las demás pantallas. El guardado de la sala se coordina automáticamente.</p></div><p>Los cursores y las selecciones remotas permiten reconocer dónde trabaja cada persona.</p>
+<figure id="figura-10" class="capture">
+  <a class="capture-link" href="images/10-participantes-presencia-remota.png" aria-label="Ampliar: Lista de participantes, estados, cursor y selección remota."><img src="images/10-participantes-presencia-remota.png" width="1917" height="906" alt="Lista de participantes, estados, cursor y selección remota." decoding="async"></a>
+  <figcaption><strong>Figura 10. Lista de participantes, estados, cursor y selección remota.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+<div class="subprocedure"><h4>Ver participantes y estados</h4><p class="lead">saber quién se encuentra en el proyecto y qué está haciendo.</p>
+<p class="steps-label">Pasos 1–2</p>
+<ol class="steps"><li>Presione el grupo de avatares de la barra superior.</li>
+<li>Revise el nombre y estado de cada participante.</li></ol>
+<p>Estados disponibles:</p>
+<ul><li><strong>Conectado</strong>;</li>
+<li><strong>Editando</strong>;</li>
+<li><strong>Escribiendo…</strong>;</li>
+<li><strong>Grabando…</strong>;</li>
+<li><strong>Inactivo</strong>;</li>
+<li><strong>Desconectado</strong>.</li></ul>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>se muestra la lista de personas presentes. Cada una conserva un color estable en cursores y selecciones.</p></div></div><div class="subprocedure"><h4>Seguir la ubicación de otra persona</h4><p class="lead">centrar la vista en el trabajo de otro participante.</p>
+<p class="steps-label">Pasos 1–2</p>
+<ol class="steps"><li>Abra la lista de participantes.</li>
+<li>Presione el nombre de otra persona.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>la vista se centra en su cursor o, si no está sobre el lienzo, en los elementos que tenga seleccionados.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>si la persona no tiene cursor ni selección visible, la aplicación muestra un aviso.</p></div></div><div class="subprocedure"><h4>Reconexión</h4><p>Si se interrumpe la conexión, la barra superior muestra <strong>Reconectando…</strong>. Puede continuar editando: la aplicación conserva una cola de cambios y trata de enviarlos cuando vuelve la conexión.</p>
+<p>Si durante la desconexión se reemplaza el diagrama completo —por ejemplo, mediante una importación—, al reconectar esa copia puede reemplazar la de la sala y la aplicación lo avisa.</p></div></article>
+ <nav class="chapter-navigation" aria-label="Recorrido: Colaboración"><a href="#editor">← Anterior<span>Editor UML</span></a><a href="#intercambio">Siguiente →<span>Importar y exportar</span></a></nav>
+</section>
+<section class="chapter" id="intercambio" aria-labelledby="titulo-intercambio">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">05</span><div><h2 id="titulo-intercambio">Importar y exportar</h2><p>Guarde una copia o intercambie modelos mediante JSON y XMI.</p></div></header>
+ <article class="procedure" id="intercambiar-diagrama"><p class="guide-label">Guía 11</p><h3>Importar y exportar JSON/XMI</h3><p class="lead">Identifique los cuatro controles de intercambio en la barra del editor. Cada imagen se utiliza una sola vez; los pasos siguientes comparten esta referencia.</p>
+<figure id="figura-11" class="capture">
+  <a class="capture-link" href="images/11-importar-exportar-json-xmi.png" aria-label="Ampliar: Botones JSON y XMI de la barra del editor."><img src="images/11-importar-exportar-json-xmi.png" width="827" height="307" alt="Botones JSON y XMI de la barra del editor." decoding="async"></a>
+  <figcaption><strong>Figura 11. Botones JSON y XMI de la barra del editor.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+<div class="subprocedure"><h4>Exportar XMI</h4><p class="lead">descargar el diagrama en XMI 2.1, utilizable en herramientas como Enterprise Architect.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>Abra el proyecto.</li>
+<li>Presione <strong>Exportar XMI</strong> en la barra superior.</li>
+<li>Guarde el archivo cuando el navegador lo solicite.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>se descarga un archivo <code>.xmi</code> con el modelo.</p></div></div><div class="subprocedure"><h4>Importar XMI</h4><p class="lead">reemplazar el diagrama abierto con un modelo contenido en un archivo XMI.</p>
+<p class="steps-label">Pasos 1–4</p>
+<ol class="steps"><li>Abra el proyecto que recibirá el contenido.</li>
+<li>Presione <strong>Importar XMI</strong>.</li>
+<li>Seleccione un archivo <code>.xmi</code> o <code>.xml</code>.</li>
+<li>Revise el aviso que aparece sobre el lienzo.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>las clases, interfaces, miembros y relaciones reconocidos reemplazan el diagrama del proyecto y quedan pendientes de guardado.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>el importador reconoce XMI 2.1 y archivos XMI 1.x de Enterprise Architect. Si el archivo contiene elementos no soportados, se importa lo reconocido y el aviso indica las omisiones. Cuando no hay posiciones utilizables, las cajas se distribuyen automáticamente.</p></div>
+<div class="callout warning"><div class="callout-title"><span aria-hidden="true">!</span> Advertencia</div><p>la importación reemplaza el contenido actual del editor. Guarde una versión antes si necesita volver con facilidad.</p></div>
+<p>Errores posibles:</p>
+<ul><li>el archivo no es XML válido;</li>
+<li>el archivo está vacío;</li>
+<li>no se encuentra ninguna clase o interfaz;</li>
+<li>alguna información del archivo no está soportada y se omite.</li></ul></div><div class="subprocedure"><h4>Exportar JSON</h4><p class="lead">guardar una copia en el formato propio del diagramador.</p>
+<p class="steps-label">Pasos 1–2</p>
+<ol class="steps"><li>Presione <strong>Exportar JSON</strong>.</li>
+<li>Guarde el archivo <code>.uml.json</code>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>se descarga una copia completa del diagrama.</p></div></div><div class="subprocedure"><h4>Importar JSON</h4><p class="lead">cargar una copia creada por el diagramador.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>Presione <strong>Importar JSON</strong>.</li>
+<li>Seleccione el archivo <code>.uml.json</code> o <code>.json</code>.</li>
+<li>Revise el mensaje mostrado sobre el lienzo.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>el documento válido reemplaza el diagrama actual y se guarda posteriormente en el proyecto.</p></div>
+<div class="callout warning"><div class="callout-title"><span aria-hidden="true">!</span> Advertencia</div><p>la importación reemplaza el contenido actual del editor.</p></div></div></article>
+ <nav class="chapter-navigation" aria-label="Recorrido: Importar y exportar"><a href="#colaboracion">← Anterior<span>Colaboración</span></a><a href="#bocetos">Siguiente →<span>Importar bocetos</span></a></nav>
+</section>
+<section class="chapter" id="bocetos" aria-labelledby="titulo-bocetos">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">06</span><div><h2 id="titulo-bocetos">Importar bocetos</h2><p>Reconstruya un diagrama desde una fotografía o captura.</p></div></header>
+<article class="procedure" id="seleccionar-boceto"><p class="guide-label">Guía 12</p><h3>Seleccionar y procesar un boceto</h3><div class="visual-flow"><div><p class="lead">reconstruir un diagrama a partir de una foto o captura.</p>
+<p class="steps-label">Pasos 1–7</p>
+<ol class="steps"><li>En la pantalla principal, presione <strong>Importar boceto</strong>.</li>
+<li>Escriba el <strong>Nombre del proyecto</strong> o déjelo vacío para usar el nombre del archivo.</li>
+<li>Presione el área <strong>Elegí una foto o captura</strong>.</li>
+<li>Seleccione una imagen PNG, JPG o WebP de hasta 10 MB.</li>
+<li>Espere mientras aparece <strong>Leyendo el boceto…</strong>.</li>
+<li>Revise el resumen de clases, atributos, operaciones, relaciones y los posibles avisos.</li>
+<li>Presione <strong>Crear proyecto y abrirlo</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>se crea un proyecto con el diagrama interpretado y se abre en el editor.</p></div>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>la aplicación puede ajustar el tamaño de la imagen para leer mejor el texto pequeño.</p></div>
+<div class="callout warning"><div class="callout-title"><span aria-hidden="true">!</span> Advertencia</div><p>la interpretación puede confundir nombres, posiciones, tipos de relación o multiplicidades. Revise siempre el resultado antes de continuar el modelado.</p></div>
+
+
+
+
+</div><figure id="figura-12" class="capture">
+  <a class="capture-link" href="images/12-seleccion-boceto.png" aria-label="Ampliar: Carga de una fotografía o captura del diagrama."><img src="images/12-seleccion-boceto.png" width="657" height="487" alt="Carga de una fotografía o captura del diagrama." decoding="async"></a>
+  <figcaption><strong>Figura 12. Carga de una fotografía o captura del diagrama.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure></div><figure id="figura-13" class="pending-figure">
+  <!-- Captura 13 pendiente: sustituya .capture-pending por un <img src="images/NOMBRE.png" alt="…"> cuando disponga de la imagen real. -->
+  <div class="capture-pending" role="note"><svg class="icon" aria-hidden="true"><use href="#i-image"></use></svg><div><strong>Captura pendiente</strong><p>Esta funcionalidad requiere el entorno desplegado con el servicio de IA configurado.</p><small>Resumen y avisos antes de crear el proyecto.</small></div></div>
+  <figcaption><strong>Figura 13. Resumen y avisos antes de crear el proyecto.</strong></figcaption>
+</figure>
+</article>
+ <nav class="chapter-navigation" aria-label="Recorrido: Importar bocetos"><a href="#intercambio">← Anterior<span>Importar y exportar</span></a><a href="#springboot">Siguiente →<span>Generar Spring Boot</span></a></nav>
+</section>
+<section class="chapter" id="springboot" aria-labelledby="titulo-springboot">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">07</span><div><h2 id="titulo-springboot">Generar Spring Boot</h2><p>Prepare las claves de sus clases y descargue el backend.</p></div></header>
+<article class="procedure" id="generar-backend"><p class="guide-label">Guía 13</p><h3>Generar el backend Spring Boot</h3><div class="mini-card"><h4>Antes de exportar</h4><p>Para exportar, el diagrama debe contener al menos una clase. Cada clase normal debe tener exactamente un atributo marcado como <strong>{id}</strong>. Las subclases heredan la clave de la raíz de su jerarquía. Una clase de asociación utiliza una clave compuesta basada en sus extremos y no necesita elegir una clave propia.</p></div><div class="visual-flow"><div><p class="lead">descargar un proyecto Spring Boot generado desde el diagrama.</p>
+<p class="steps-label">Pasos 1–6</p>
+<ol class="steps"><li>Abra el proyecto y espere a que los cambios estén guardados.</li>
+<li>Presione <strong>Exportar backend</strong>.</li>
+<li>En <strong>Exportar backend</strong>, revise las clases y los tipos de sus atributos.</li>
+<li>Para cada clase que lo requiera, seleccione un atributo en la columna <strong>clave</strong>.</li>
+<li>Corrija las filas que indiquen <strong>Ninguna propiedad marcada como clave</strong> o varias claves.</li>
+<li>Presione <strong>Exportar</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>el navegador descarga un archivo <code>.zip</code> con el proyecto generado.</p></div>
+<p>El archivo incluye la aplicación Spring Boot, entidades, DTO, mapeadores, repositorios, servicios y controladores para las clases concretas, documentación Swagger/OpenAPI, configuración y una colección de Postman. Las clases abstractas e interfaces se representan en el código, pero no generan un CRUD propio.</p>
+<div class="callout note"><div class="callout-title"><span aria-hidden="true">i</span> Nota</div><p>antes de exportar, la aplicación guarda lo que está en pantalla porque el servidor genera el archivo desde el contenido guardado.</p></div>
+
+
+</div><figure id="figura-14" class="capture">
+  <a class="capture-link" href="images/14-exportar-springboot.png" aria-label="Ampliar: Revisión de claves y tipos antes de descargar Spring Boot."><img src="images/14-exportar-springboot.png" width="652" height="530" alt="Revisión de claves y tipos antes de descargar Spring Boot." decoding="async"></a>
+  <figcaption><strong>Figura 14. Revisión de claves y tipos antes de descargar Spring Boot.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure></div></article>
+ <nav class="chapter-navigation" aria-label="Recorrido: Generar Spring Boot"><a href="#bocetos">← Anterior<span>Importar bocetos</span></a><a href="#agente">Siguiente →<span>Agente virtual</span></a></nav>
+</section>
+<section class="chapter" id="agente" aria-labelledby="titulo-agente">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">08</span><div><h2 id="titulo-agente">Agente virtual</h2><p>Consulte y edite el diagrama mediante una conversación de voz.</p></div></header>
+ <article class="procedure" id="hablar-agente"><p class="guide-label">Guía 14</p><h3>Hablar con el agente virtual</h3><p class="lead">consultar o modificar el diagrama mediante órdenes habladas.</p>
+<p class="steps-label">Pasos 1–6</p>
+<ol class="steps"><li>Abra la pestaña <strong>Propiedades</strong>.</li>
+<li>Presione <strong>Hablar con el agente</strong>.</li>
+<li>Cuando el navegador solicite acceso, conceda permiso al micrófono.</li>
+<li>Espere el indicador <strong>Te escucho</strong>.</li>
+<li>Hable de forma breve y mencione los nombres de los elementos.</li>
+<li>Presione <strong>Colgar</strong> al terminar.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>el agente responde por voz, muestra la transcripción del diálogo y aplica las operaciones solicitadas cuando son válidas.</p></div>
+<p>Puede usar <strong>Silenciar</strong> y volver a activar el micrófono durante la llamada.</p>
+
+<figure id="figura-15" class="pending-figure">
+  <!-- Captura 15 pendiente: sustituya .capture-pending por un <img src="images/NOMBRE.png" alt="…"> cuando disponga de la imagen real. -->
+  <div class="capture-pending" role="note"><svg class="icon" aria-hidden="true"><use href="#i-image"></use></svg><div><strong>Captura pendiente</strong><p>Esta funcionalidad requiere el entorno desplegado con el servicio de IA configurado.</p><small>Controles, estado y registro del agente virtual.</small></div></div>
+  <figcaption><strong>Figura 15. Controles, estado y registro del agente virtual.</strong></figcaption>
+</figure>
+<div class="subprocedure"><h4>Operaciones disponibles</h4><p>El agente puede:</p>
+<ul><li>resumir el diagrama y describir una clase;</li>
+<li>crear, renombrar, mover o eliminar clases;</li>
+<li>agregar, modificar o quitar atributos;</li>
+<li>agregar o quitar operaciones;</li>
+<li>crear, modificar o eliminar relaciones;</li>
+<li>ordenar el diagrama;</li>
+<li>cambiar el trazado o enderezar una relación;</li>
+<li>deshacer la última acción local.</li></ul>
+<p>Ejemplos respaldados por la interfaz:</p>
+<ul><li>“Agregá un atributo precio a Película”.</li>
+<li>“¿Qué relaciones tiene Socio?”.</li>
+<li>“Poné NotaAlquiler a la derecha de Ejemplar”.</li>
+<li>“Ordená el diagrama”.</li></ul></div><div class="subprocedure"><h4>Confirmaciones y nombres ambiguos</h4><p>Antes de eliminar una clase o relación, el agente debe pedir una confirmación explícita. La eliminación no se ejecuta si no recibe esa confirmación.</p>
+<p>Si varios elementos tienen nombres parecidos, el agente debe pedir que indique cuál. Si no entiende un nombre, repítalo con más claridad o seleccione y edite el elemento manualmente.</p></div><div class="subprocedure"><h4>Problemas del agente</h4><p>Si aparece un mensaje sobre el micrófono, revise el permiso del navegador. Si la llamada muestra <strong>Se cortó la llamada</strong> o informa que no pudo contactar con la IA, cuelgue y vuelva a intentarlo cuando la conexión o el servicio estén disponibles.</p></div></article>
+ <nav class="chapter-navigation" aria-label="Recorrido: Agente virtual"><a href="#springboot">← Anterior<span>Generar Spring Boot</span></a><a href="#chat">Siguiente →<span>Chat e IA</span></a></nav>
+</section>
+<section class="chapter" id="chat" aria-labelledby="titulo-chat">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">09</span><div><h2 id="titulo-chat">Chat e IA</h2><p>Converse, envíe notas de voz y decida sobre las propuestas de la IA.</p></div></header>
+ <article class="procedure" id="chat-texto"><p class="guide-label">Guía 15</p><h3>Conversar y preguntar a la IA por texto</h3><div class="subprocedure"><h4>Chat grupal de texto</h4><p class="lead">conversar con las personas del proyecto.</p>
+<p class="steps-label">Pasos 1–4</p>
+<ol class="steps"><li>Abra la pestaña <strong>Chat</strong>.</li>
+<li>Escriba en <strong>Escribí un mensaje… (@IA para preguntarle)</strong>.</li>
+<li>Presione <code>Enter</code> o el botón <strong>Enviar mensaje</strong>.</li>
+<li>Use <code>Mayús</code> + <code>Enter</code> para insertar una nueva línea.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>el mensaje aparece para toda la sala y queda en el historial del proyecto.</p></div>
+<p>Si el envío falla, el mensaje muestra <strong>No enviado</strong> y permite <strong>Reintentar</strong> o descartarlo.</p></div><div class="subprocedure"><h4>Preguntar a la IA por texto</h4><p class="lead">hacer una consulta sobre el diagrama o proponer un cambio.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>En <strong>Chat</strong>, escriba <code>@IA</code> seguido de la pregunta; también puede presionar el botón con destellos para insertar la mención.</li>
+<li>Envíe el mensaje.</li>
+<li>Espere el indicador <strong>La IA está escribiendo…</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>la respuesta aparece en el chat, vinculada a la pregunta y visible para toda la sala. La IA recibe el estado actual del diagrama y el contexto reciente de la conversación.</p></div>
+
+<figure id="figura-16" class="pending-figure">
+  <!-- Captura 16 pendiente: sustituya .capture-pending por un <img src="images/NOMBRE.png" alt="…"> cuando disponga de la imagen real. -->
+  <div class="capture-pending" role="note"><svg class="icon" aria-hidden="true"><use href="#i-image"></use></svg><div><strong>Captura pendiente</strong><p>Esta funcionalidad requiere el entorno desplegado con el servicio de IA configurado.</p><small>Mensajes de la sala y respuesta compartida de la IA.</small></div></div>
+  <figcaption><strong>Figura 16. Mensajes de la sala y respuesta compartida de la IA.</strong></figcaption>
+</figure>
+</div></article><article class="procedure" id="chat-voz"><p class="guide-label">Guía 16</p><h3>Usar notas de voz con el equipo y la IA</h3><div class="subprocedure"><h4>Grabar una nota de voz</h4><p class="lead">enviar audio a la sala.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>Mantenga presionado el micrófono normal.</li>
+<li>Hable mientras lo mantiene presionado.</li>
+<li>Suelte para enviar.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>se publica una nota reproducible con su transcripción cuando está disponible.</p></div>
+<p>Para cancelar, deslice hacia la izquierda antes de soltar o presione <code>Esc</code>. La duración máxima es de dos minutos.</p></div><div class="subprocedure"><h4>Preguntar a la IA por voz</h4><p class="lead">enviar una nota de voz que la IA responda con voz y texto.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>Mantenga presionado el micrófono violeta con destellos.</li>
+<li>Haga la pregunta.</li>
+<li>Suelte para enviar.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>la nota se transcribe; la IA publica una respuesta compartida con audio y texto. La reproducción automática puede depender de la configuración del navegador.</p></div>
+
+<figure id="figura-17" class="pending-figure">
+  <!-- Captura 17 pendiente: sustituya .capture-pending por un <img src="images/NOMBRE.png" alt="…"> cuando disponga de la imagen real. -->
+  <div class="capture-pending" role="note"><svg class="icon" aria-hidden="true"><use href="#i-image"></use></svg><div><strong>Captura pendiente</strong><p>Esta funcionalidad requiere el entorno desplegado con el servicio de IA configurado.</p><small>Grabación, transcripción y reproducción de mensajes de voz.</small></div></div>
+  <figcaption><strong>Figura 17. Grabación, transcripción y reproducción de mensajes de voz.</strong></figcaption>
+</figure>
+</div></article><article class="procedure" id="votar-cambios"><p class="guide-label">Guía 17</p><h3>Votar los cambios de la IA</h3><p>Cuando una solicitud del chat modifica el diagrama, el cambio se aplica de forma provisional y se marca en el lienzo hasta que la sala decida.</p>
+<p class="lead">conservar o descartar como equipo los cambios de la IA.</p>
+<p class="steps-label">Pasos 1–4</p>
+<ol class="steps"><li>Revise el panel <strong>Cambios de la IA</strong> sobre el cuadro de mensaje.</li>
+<li>Examine la lista de cambios y el tiempo restante.</li>
+<li>Presione <strong>Conservar</strong> o <strong>Descartar</strong>.</li>
+<li>Si lo desea, cambie su voto antes del cierre.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>al cerrar la votación, la aplicación indica si los cambios se conservan o se descartan. Si se descartan, se revierte el cambio; si se conservan, se crea una versión de origen IA.</p></div>
+<p>También se reconocen respuestas breves como “sí” o “no” en el chat y en notas de voz. La votación cierra cuando votaron todas las personas presentes o al llegar al límite de dos minutos. En empate, decide el voto de quien pidió el cambio. La regla del caso de uso establece que, si nadie vota antes de finalizar la votación, los cambios se conservan porque ya fueron aplicados al diagrama.</p>
+
+<figure id="figura-18" class="pending-figure">
+  <!-- Captura 18 pendiente: sustituya .capture-pending por un <img src="images/NOMBRE.png" alt="…"> cuando disponga de la imagen real. -->
+  <div class="capture-pending" role="note"><svg class="icon" aria-hidden="true"><use href="#i-image"></use></svg><div><strong>Captura pendiente</strong><p>Esta funcionalidad requiere el entorno desplegado con el servicio de IA configurado.</p><small>Cambios provisionales, conteo y botones de votación.</small></div></div>
+  <figcaption><strong>Figura 18. Cambios provisionales, conteo y botones de votación.</strong></figcaption>
+</figure>
+<div class="callout warning"><div class="callout-title"><span aria-hidden="true">!</span> Función parcialmente implementada</div><p>Según el checklist existente, la regla de conservar los cambios cuando nadie vota todavía está pendiente: la versión revisada los descarta. Para decidir el resultado, emita un voto explícito con <strong>Conservar</strong> o <strong>Descartar</strong>.</p></div></article>
+ <nav class="chapter-navigation" aria-label="Recorrido: Chat e IA"><a href="#agente">← Anterior<span>Agente virtual</span></a><a href="#versiones">Siguiente →<span>Versiones</span></a></nav>
+</section>
+<section class="chapter" id="versiones" aria-labelledby="titulo-versiones">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">10</span><div><h2 id="titulo-versiones">Versiones</h2><p>Conserve avances, consulte el historial y recupere un estado anterior.</p></div></header>
+ <article class="procedure" id="historial-versiones"><p class="guide-label">Guía 18</p><h3>Consultar el historial y guardar una versión</h3><p class="lead">conservar un punto reconocible del diagrama.</p>
+<p class="steps-label">Pasos 1–3</p>
+<ol class="steps"><li>Abra la pestaña <strong>Versiones</strong>.</li>
+<li>Escriba un texto en <strong>Nombre (opcional)</strong>.</li>
+<li>Presione <strong>Guardar versión</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>la versión aparece en la lista con número, fecha, autor y cantidad de clases y relaciones.</p></div>
+<p>La sala también crea versiones automáticas mientras se edita, versiones de los cambios de IA conservados y respaldos antes de restaurar.</p>
+<figure id="figura-19" class="capture portrait">
+  <a class="capture-link" href="images/19-historial-versiones.png" aria-label="Ampliar: Lista de versiones manuales, automáticas, de IA y restauración."><img src="images/19-historial-versiones.png" width="416" height="475" alt="Lista de versiones manuales, automáticas, de IA y restauración." decoding="async"></a>
+  <figcaption><strong>Figura 19. Lista de versiones manuales, automáticas, de IA y restauración.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+</article><article class="procedure" id="restaurar-version"><p class="guide-label">Guía 19</p><h3>Previsualizar y restaurar una versión</h3><p class="lead">revisar un estado anterior y recuperarlo para toda la sala.</p>
+<p class="steps-label">Pasos 1–5</p>
+<ol class="steps"><li>Abra <strong>Versiones</strong>.</li>
+<li>Presione una versión de la lista.</li>
+<li>Revise la vista <strong>Solo lectura</strong>.</li>
+<li>Presione <strong>Restaurar esta versión</strong>.</li>
+<li>Revise el aviso y presione <strong>Sí, restaurar</strong>.</li></ol>
+<div class="callout result"><div class="callout-title"><span aria-hidden="true">✓</span> Resultado esperado</div><p>la versión elegida reemplaza el diagrama de toda la sala. El estado anterior se guarda como una versión nueva para poder recuperarlo.</p></div>
+<div class="callout warning"><div class="callout-title"><span aria-hidden="true">!</span> Advertencia</div><p>no se puede restaurar mientras existe una votación abierta sobre cambios de la IA.</p></div>
+
+<figure id="figura-20" class="capture">
+  <a class="capture-link" href="images/20-previsualizar-restaurar-version.png" aria-label="Ampliar: Vista de solo lectura y confirmación de restauración."><img src="images/20-previsualizar-restaurar-version.png" width="1917" height="892" alt="Vista de solo lectura y confirmación de restauración." decoding="async"></a>
+  <figcaption><strong>Figura 20. Vista de solo lectura y confirmación de restauración.</strong><span class="zoom-hint">Clic para ampliar</span></figcaption>
+</figure>
+<div class="callout warning"><div class="callout-title"><span aria-hidden="true">!</span> Un cambio para toda la sala</div><p>Restaurar reemplaza el diagrama de todas las personas conectadas. El estado anterior queda guardado como una versión nueva para poder recuperarlo.</p></div></article>
+ <nav class="chapter-navigation" aria-label="Recorrido: Versiones"><a href="#chat">← Anterior<span>Chat e IA</span></a><a href="#problemas">Siguiente →<span>Solución de problemas</span></a></nav>
+</section>
+<section class="chapter" id="problemas" aria-labelledby="titulo-problemas">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">11</span><div><h2 id="titulo-problemas">Solución de problemas</h2><p>Encuentre una causa posible y una acción concreta para continuar.</p></div></header>
+ <div class="troubleshooting"><article class="problem"><h3>No se puede iniciar sesión</h3><dl><dt>Posible causa</dt><dd>Correo o contraseña incorrectos; cuenta desactivada; conexión interrumpida</dd><dt>Solución</dt><dd>Revise los datos. Si aparece <strong>Credenciales invalidas</strong>, vuelva a escribirlos. Compruebe la conexión y reintente.</dd></dl></article>
+<article class="problem"><h3>No se cargan los proyectos</h3><dl><dt>Posible causa</dt><dd>El servidor o la conexión no están disponibles</dd><dt>Solución</dt><dd>Presione <strong>Reintentar</strong>.</dd></dl></article>
+<article class="problem"><h3>No se puede abrir un proyecto</h3><dl><dt>Posible causa</dt><dd>El proyecto no existe, no tiene permisos o el contenido no es válido</dd><dt>Solución</dt><dd>Regrese con <strong>Volver a mis proyectos</strong>. Compruebe que la invitación esté aceptada y pida al dueño que confirme el acceso.</dd></dl></article>
+<article class="problem"><h3>No aparece un proyecto invitado</h3><dl><dt>Posible causa</dt><dd>La invitación sigue pendiente o la lista no se actualizó</dd><dt>Solución</dt><dd>Abra <strong>Invitaciones</strong>, presione <strong>Aceptar</strong> y, si hace falta, <strong>Actualizar</strong>.</dd></dl></article>
+<article class="problem"><h3>No se puede invitar</h3><dl><dt>Posible causa</dt><dd>No es el dueño, el UUID no es válido, no existe el usuario o ya fue invitado</dd><dt>Solución</dt><dd>Use un proyecto propio y copie exactamente el UUID de la otra persona.</dd></dl></article>
+<article class="problem"><h3>Aparece <strong>Reconectando…</strong></h3><dl><dt>Posible causa</dt><dd>Se interrumpió el socket de la sala</dd><dt>Solución</dt><dd>Continúe con precaución y espere la reconexión. Revise después el aviso de sincronización y el estado de guardado.</dd></dl></article>
+<article class="problem"><h3>Aparece <strong>No se pudo guardar</strong></h3><dl><dt>Posible causa</dt><dd>Falló la conexión o el servidor rechazó el guardado</dd><dt>Solución</dt><dd>Mantenga el editor abierto, recupere la conexión y realice otro cambio o vuelva a la lista para provocar un nuevo intento de guardado.</dd></dl></article>
+<article class="problem"><h3>XMI no se importa</h3><dl><dt>Posible causa</dt><dd>El archivo no es XML válido, está vacío o no contiene clases/interfaz reconocibles</dd><dt>Solución</dt><dd>Exporte nuevamente desde la herramienta de origen como XMI 1.x o 2.1 y revise el archivo.</dd></dl></article>
+<article class="problem"><h3>Faltan elementos después de importar XMI</h3><dl><dt>Posible causa</dt><dd>El archivo contiene elementos no soportados</dd><dt>Solución</dt><dd>Revise el aviso mostrado y complete manualmente lo omitido.</dd></dl></article>
+<article class="problem"><h3>El boceto no se reconoce</h3><dl><dt>Posible causa</dt><dd>Imagen borrosa, inclinada, demasiado grande o IA no disponible</dd><dt>Solución</dt><dd>Use una foto nítida y frontal en PNG, JPG o WebP de hasta 10 MB y vuelva a intentar.</dd></dl></article>
+<article class="problem"><h3>El micrófono no funciona</h3><dl><dt>Posible causa</dt><dd>Permiso bloqueado o dispositivo no disponible</dd><dt>Solución</dt><dd>Permita el micrófono para el sitio y compruebe el dispositivo seleccionado por el navegador.</dd></dl></article>
+<article class="problem"><h3>Una nota queda <strong>Sin transcripción</strong></h3><dl><dt>Posible causa</dt><dd>No se entendió el audio o falló el servicio</dd><dt>Solución</dt><dd>Reproduzca la nota y vuelva a grabarla con menos ruido.</dd></dl></article>
+<article class="problem"><h3>La IA no responde</h3><dl><dt>Posible causa</dt><dd>Servicio de IA no configurado, no disponible o tiempo de espera agotado</dd><dt>Solución</dt><dd>Reintente más tarde. El resto del editor puede seguir utilizándose.</dd></dl></article>
+<article class="problem"><h3>No se puede exportar Spring Boot</h3><dl><dt>Posible causa</dt><dd>No hay clases o alguna clase no tiene exactamente una clave</dd><dt>Solución</dt><dd>Agregue un atributo, marque <strong>{id}</strong> o elija la clave en <strong>Exportar backend</strong>.</dd></dl></article>
+<article class="problem"><h3>No se puede restaurar una versión</h3><dl><dt>Posible causa</dt><dd>Hay una votación abierta o la versión no se pudo cargar</dd><dt>Solución</dt><dd>Espere el cierre de la votación y vuelva a intentar.</dd></dl></article></div><div class="faq"><h3>Preguntas frecuentes</h3><details><summary>¿Cómo creo un proyecto?</summary><p>En <strong>Mis proyectos</strong>, presione <strong>Nuevo proyecto</strong>, escriba el nombre y elija <strong>Crear y abrir</strong>.</p></details>
+<details><summary>¿Cómo invito a otra persona?</summary><p>Pídale su UUID, abra un proyecto propio, presione <strong>Invitar</strong>, busque el UUID y confirme con <strong>Invitar</strong>.</p></details>
+<details><summary>¿Puedo trabajar con otra persona al mismo tiempo?</summary><p>Sí. Cuando ambas personas abren el proyecto, los cambios, cursores, selecciones, estados y mensajes se comparten en tiempo real.</p></details>
+<details><summary>¿Cómo exporto mi diagrama?</summary><p>Use <strong>Exportar JSON</strong> para una copia propia del diagramador o <strong>Exportar XMI</strong> para XMI 2.1. Para código, use <strong>Exportar backend</strong>.</p></details>
+<details><summary>¿Qué formatos XMI se pueden importar?</summary><p>La aplicación acepta archivos <code>.xmi</code> y <code>.xml</code>, reconoce XMI 2.1 y archivos XMI 1.x de Enterprise Architect. La exportación genera XMI 2.1.</p></details>
+<details><summary>¿El boceto crea el proyecto inmediatamente?</summary><p>No. Primero se muestra un resumen de lo interpretado; el proyecto se crea al presionar <strong>Crear proyecto y abrirlo</strong>.</p></details>
+<details><summary>¿Qué hago si la IA interpreta mal mi comando?</summary><p>Explique el nombre exacto o haga el cambio manualmente. Para una acción local del agente puede usar <strong>Deshacer</strong>. En el chat, descarte la propuesta durante la votación.</p></details>
+<details><summary>¿Puedo recuperar un diagrama anterior?</summary><p>Sí. Abra <strong>Versiones</strong>, previsualice una versión y use <strong>Restaurar esta versión</strong>. Antes de restaurar se conserva una copia del estado actual.</p></details>
+<details><summary>¿Cómo se cancela una nota de voz?</summary><p>Mientras mantiene presionado el micrófono, deslice hacia la izquierda o presione <code>Esc</code>; luego suelte.</p></details>
+<details><summary>¿Puedo renombrar o eliminar un proyecto desde la pantalla principal?</summary><p>No. La interfaz actual permite crear y abrir proyectos, pero no muestra acciones para renombrarlos o eliminarlos. Cambiar <strong>Nombre del modelo</strong> dentro del editor no cambia la tarjeta del proyecto.</p></details></div>
+ <nav class="chapter-navigation" aria-label="Recorrido: Solución de problemas"><a href="#versiones">← Anterior<span>Versiones</span></a><a href="#glosario">Siguiente →<span>Glosario</span></a></nav>
+</section>
+<section class="chapter" id="glosario" aria-labelledby="titulo-glosario">
+ <header class="chapter-heading"><span class="chapter-number" aria-hidden="true">12</span><div><h2 id="titulo-glosario">Glosario</h2><p>Consulte los términos utilizados a lo largo de esta guía.</p></div></header>
+ <dl class="glossary"><div><dt>UML</dt><dd>lenguaje visual utilizado para representar la estructura de un sistema.</dd></div>
+<div><dt>Clase</dt><dd>elemento que representa un tipo de objeto con atributos y operaciones.</dd></div>
+<div><dt>Interfaz</dt><dd>contrato de operaciones que una clase puede realizar.</dd></div>
+<div><dt>Clase abstracta</dt><dd>clase que sirve como base de otras y no se instancia directamente.</dd></div>
+<div><dt>Atributo</dt><dd>dato o propiedad de una clase.</dd></div>
+<div><dt>Operación</dt><dd>acción o método definido en una clase o interfaz.</dd></div>
+<div><dt>Parámetro</dt><dd>dato que recibe una operación.</dd></div>
+<div><dt>Relación</dt><dd>vínculo entre dos elementos del diagrama.</dd></div>
+<div><dt>Multiplicidad</dt><dd>cantidad permitida de objetos en un extremo de una relación, por ejemplo <code>1</code>, <code>0..1</code> o <code>0..*</code>.</dd></div>
+<div><dt>Navegabilidad</dt><dd>indica desde qué extremo se puede recorrer una relación.</dd></div>
+<div><dt>Clase de asociación</dt><dd>clase que guarda datos propios de una relación.</dd></div>
+<div><dt>XMI</dt><dd>formato XML para intercambiar modelos UML entre herramientas.</dd></div>
+<div><dt>JSON</dt><dd>formato utilizado por la copia completa propia del diagramador.</dd></div>
+<div><dt>Spring Boot</dt><dd>estructura de backend Java que la aplicación puede generar y descargar.</dd></div>
+<div><dt>Boceto</dt><dd>fotografía o captura de un diagrama que la aplicación intenta reconstruir.</dd></div>
+<div><dt>IA</dt><dd>asistente que puede responder preguntas y proponer o ejecutar operaciones sobre el diagrama.</dd></div>
+<div><dt>Proyecto compartido</dt><dd>proyecto de otra persona al que se accede mediante una invitación aceptada.</dd></div>
+<div><dt>UUID</dt><dd>identificador único de la cuenta utilizado para enviar invitaciones.</dd></div>
+<div><dt>Sala</dt><dd>sesión en tiempo real formada por las personas que tienen abierto el mismo proyecto.</dd></div>
+<div><dt>Versión</dt><dd>copia guardada del diagrama en un momento determinado.</dd></div>
+<div><dt>Cambio provisional</dt><dd>modificación propuesta por la IA que todavía espera la decisión de la sala.</dd></div></dl>
+ <nav class="chapter-navigation" aria-label="Recorrido: Glosario"><a href="#problemas">← Anterior<span>Solución de problemas</span></a><a href="#portada">Volver al inicio ↑<span>Volver a la portada</span></a></nav>
+</section>
+<footer class="footer"><span>Diagramador UML · Manual de Usuario</span><span><a href="../manual-usuario.md">Fuente documental</a> · <a href="../manual-usuario-checklist.md">Estado de funcionalidades</a></span></footer>
+</div></main>
+<dialog class="lightbox" id="capture-lightbox" aria-labelledby="lightbox-caption"><div class="lightbox-bar"><p id="lightbox-caption">Captura del sistema</p><button class="lightbox-close" type="button" aria-label="Cerrar captura ampliada">Cerrar ×</button></div><img class="lightbox-image" alt=""><a class="lightbox-original" target="_blank" rel="noopener">Abrir imagen a tamaño original ↗</a></dialog>
+</body>
+</html>
