@@ -76,6 +76,7 @@ export function Palette() {
           return (
             <PaletteItem
               key={entry.key}
+              tourTarget={entry.classifierKind === 'class' && entry.variantId === undefined ? 'clase' : undefined}
               label={entry.label}
               icon={entry.icon}
               isActive={isActive}
@@ -127,7 +128,7 @@ export function Palette() {
         })}
       </section>
 
-      <section className="flex flex-col gap-1">
+      <section data-tour="relaciones" className="flex flex-col gap-1">
         <h2 className={SECTION_TITLE}>Relaciones</h2>
 
         {RELATION_LIST.map((spec) => {

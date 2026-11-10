@@ -20,12 +20,14 @@ export function PanelLateral({
   plegado,
   onAlternar,
   children,
+  tourTarget,
 }: {
   titulo: string
   lado: 'izquierda' | 'derecha'
   plegado: boolean
   onAlternar: () => void
   children: ReactNode
+  tourTarget?: string
 }) {
   const Icono =
     lado === 'izquierda'
@@ -53,7 +55,7 @@ export function PanelLateral({
   )
 
   return (
-    <aside className={`flex min-h-0 min-w-0 flex-col overflow-hidden ${borde} border-slate-300 bg-white`}>
+    <aside data-tour={tourTarget} className={`flex min-h-0 min-w-0 flex-col overflow-hidden ${borde} border-slate-300 bg-white`}>
       {plegado ? (
         // La franja entera abre el panel: apuntar a un icono de 16 px en el borde de la
         // pantalla es justo lo que no apetece hacer para recuperar una herramienta.

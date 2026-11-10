@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
 import { useAuthStore } from '@/auth/useAuthStore'
+import { OnboardingProvider } from '@/onboarding/OnboardingProvider'
 
 /**
  * Gate for every screen that needs a session. The attempted URL rides along in
@@ -15,5 +16,5 @@ export function RequireAuth() {
     return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
   }
 
-  return <Outlet />
+  return <OnboardingProvider key={token}><Outlet /></OnboardingProvider>
 }

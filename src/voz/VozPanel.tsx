@@ -151,6 +151,7 @@ export function VozPanel() {
           ) : (
             <button
               type="button"
+              data-tour="agente"
               onClick={() => void llamar()}
               className={`${BOTON} bg-sky-600 text-white hover:bg-sky-700`}
             >

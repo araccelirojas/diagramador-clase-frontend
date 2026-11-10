@@ -6,6 +6,7 @@ import { ApiError } from '@/api/client'
 import { createProject, listProjects } from '@/api/projects'
 import type { ProyectoResumen } from '@/api/types'
 import { useAuthStore } from '@/auth/useAuthStore'
+import { GuideButton } from '@/onboarding/GuideButton'
 import { FormError } from '@/ui/auth/FormError'
 import { ProjectCard } from '@/ui/home/ProjectCard'
 import { ImportSketchDialog } from '@/ui/home/ImportSketchDialog'
@@ -123,6 +124,7 @@ export function HomePage() {
               </h1>
             </div>
 
+            <GuideButton />
             <button
               type="button"
               onClick={signOut}
@@ -197,6 +199,7 @@ export function HomePage() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    data-tour="importar-boceto"
                     onClick={() => setImportandoBoceto(true)}
                     title="Reconstruir un diagrama a partir de una foto"
                     className="flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700"
@@ -207,6 +210,7 @@ export function HomePage() {
 
                   <button
                     type="button"
+                    data-tour="nuevo-proyecto"
                     onClick={() => {
                       setCreando((abierto) => !abierto)
                       setCreateError(null)
@@ -252,6 +256,7 @@ export function HomePage() {
 
                 <button
                   type="button"
+                  data-tour="invitaciones"
                   onClick={() => setViendoInvitaciones(true)}
                   className="flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700"
                 >

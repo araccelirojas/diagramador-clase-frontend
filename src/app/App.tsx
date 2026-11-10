@@ -11,6 +11,8 @@ import { useChatStore } from '@/chat/useChatStore'
 import { useVoteStore } from '@/ia/useVoteStore'
 import { Inspector } from '@/inspector/Inspector'
 import { Palette } from '@/palette/Palette'
+import { GuideButton } from '@/onboarding/GuideButton'
+import { useEditorTour } from '@/onboarding/useEditorTour'
 import { ExportBackendButton } from '@/ui/ExportBackendButton'
 import { InviteModal } from '@/ui/invitations/InviteModal'
 import { BotonLlamada } from '@/llamada/BotonLlamada'
@@ -62,6 +64,7 @@ function App({
 
   /** The right panel: the inspector (with the voice agent), the chat, and the version history. */
   const [pestana, setPestana] = useState<'propiedades' | 'chat' | 'versiones'>('propiedades')
+  useEditorTour(setClasesPlegado, setPropiedadesPlegado, setPestana)
   const unread = useChatStore((state) => state.unread)
   // CU-04: a vote in progress lives in the chat; the tab says so from the other one.
   const voting = useVoteStore((state) => state.vote?.estado === 'abierta')
@@ -110,6 +113,7 @@ function App({
             * contador de la Toolbar, estos botones acababan fuera de la pantalla.
             */}
           <div className="ml-auto flex shrink-0 items-center gap-2">
+            <GuideButton />
             <SaveStatus state={saveState} dirty={dirty} />
 
             {collaboration.status === 'reconnecting' && (
@@ -124,11 +128,11 @@ function App({
             )}
 
             {(collaboration.status === 'connected' || collaboration.status === 'reconnecting') && (
-              <>
+              <div data-tour="colaboracion" className="flex items-center gap-2">
                 <ParticipantList />
                 {/* The group voice call, with Jarvis inside. */}
                 <BotonLlamada />
-              </>
+              </div>
             )}
 
             <span className="h-4 w-px shrink-0 bg-slate-200" />
@@ -141,6 +145,7 @@ function App({
 
             <button
               type="button"
+              data-tour="colaboracion"
               onClick={() => setInvitando(true)}
               disabled={!soyDueno}
               title={
@@ -165,6 +170,7 @@ function App({
         )}
 
         <PanelLateral
+          tourTarget="paleta"
           titulo="Clases"
           lado="izquierda"
           plegado={clasesPlegado}
@@ -173,7 +179,7 @@ function App({
           <Palette />
         </PanelLateral>
 
-        <main className="relative min-w-0 overflow-hidden">
+        <main data-tour="lienzo" className="relative min-w-0 overflow-hidden">
           <UmlCanvas />
           {/* Over the canvas, so it stays in view whatever tab the right panel shows. */}
           <LlamadaFlotante />
@@ -190,6 +196,7 @@ function App({
             <button
               type="button"
               role="tab"
+              data-tour="propiedades"
               aria-selected={pestana === 'propiedades'}
               onClick={() => setPestana('propiedades')}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-sm px-2 py-1 text-xs transition-colors ${
@@ -202,6 +209,7 @@ function App({
             <button
               type="button"
               role="tab"
+              data-tour="chat"
               aria-selected={pestana === 'chat'}
               onClick={() => setPestana('chat')}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-sm px-2 py-1 text-xs transition-colors ${
@@ -224,6 +232,7 @@ function App({
             <button
               type="button"
               role="tab"
+              data-tour="versiones"
               aria-selected={pestana === 'versiones'}
               onClick={() => setPestana('versiones')}
               title="Historial de versiones del diagrama"

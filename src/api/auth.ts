@@ -30,3 +30,8 @@ export function register(payload: RegisterPayload): Promise<Sesion> {
 export function fetchProfile(signal?: AbortSignal): Promise<Usuario> {
   return apiFetch<Usuario>('/auth/perfil', { signal })
 }
+
+/** Marks the signed-in user's initial tour as completed or explicitly skipped. */
+export function completeOnboarding(): Promise<Usuario> {
+  return apiFetch<Usuario>('/auth/onboarding', { method: 'PATCH' })
+}

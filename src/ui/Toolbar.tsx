@@ -100,7 +100,7 @@ export function Toolbar() {
         </button>
       </div>
 
-      <div className="ml-2 flex items-center gap-1 border-l border-slate-200 pl-2">
+      <div data-tour="intercambio" className="ml-2 flex items-center gap-1 border-l border-slate-200 pl-2">
         <button
           type="button"
           className={BUTTON}
@@ -121,7 +121,7 @@ export function Toolbar() {
         </button>
       </div>
 
-      <div className="ml-2 flex items-center gap-1 border-l border-slate-200 pl-2">
+      <div data-tour="intercambio" className="ml-2 flex items-center gap-1 border-l border-slate-200 pl-2">
         <button
           type="button"
           className={BUTTON}

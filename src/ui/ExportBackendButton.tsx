@@ -23,6 +23,7 @@ export function ExportBackendButton({
     <>
       <button
         type="button"
+        data-tour="exportar-backend"
         onClick={() => setAbierto(true)}
         title="Genera un proyecto Spring Boot con el CRUD y Swagger de cada clase"
         className="flex shrink-0 items-center gap-1.5 rounded-sm border border-slate-300 px-2 py-1 text-xs whitespace-nowrap text-slate-600 transition-colors hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700"

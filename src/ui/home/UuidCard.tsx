@@ -38,7 +38,7 @@ export function UuidCard({ idUsuario }: { idUsuario: string }) {
   }
 
   return (
-    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+    <div data-tour="uuid" className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
       <p className="mb-1.5 flex items-center gap-1.5 text-[11px] text-slate-500">
         <Fingerprint className="h-3.5 w-3.5 text-slate-400" />
         Tu UUID — compartilo para que puedan invitarte a sus proyectos

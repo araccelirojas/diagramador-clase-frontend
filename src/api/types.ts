@@ -12,6 +12,7 @@ export type Usuario = {
   /** ISO timestamp. */
   fechaRegistro: string
   estado: boolean
+  onboardingCompletado: boolean
 }
 
 /** What `proyecto.repository` includes for the owner of a project. */

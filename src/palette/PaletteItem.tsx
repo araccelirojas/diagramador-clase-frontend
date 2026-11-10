@@ -15,6 +15,7 @@ type PaletteItemProps = {
   /** Given only for tools that can be dropped onto the canvas or onto a node. */
   drag?: PaletteDragPayload
   hint: string
+  tourTarget?: string
 }
 
 const BASE =
@@ -22,7 +23,7 @@ const BASE =
 const IDLE = 'border-transparent text-slate-700 hover:border-slate-300 hover:bg-slate-50'
 const ACTIVE = 'border-sky-400 bg-sky-50 text-sky-900'
 
-export function PaletteItem({ label, icon: Icon, isActive, onSelect, drag, hint }: PaletteItemProps) {
+export function PaletteItem({ label, icon: Icon, isActive, onSelect, drag, hint, tourTarget }: PaletteItemProps) {
   const onDragStart = (event: DragEvent<HTMLButtonElement>): void => {
     if (!drag) return
 
@@ -33,6 +34,7 @@ export function PaletteItem({ label, icon: Icon, isActive, onSelect, drag, hint 
   return (
     <button
       type="button"
+      data-tour={tourTarget}
       draggable={drag !== undefined}
       onDragStart={onDragStart}
       onClick={onSelect}
