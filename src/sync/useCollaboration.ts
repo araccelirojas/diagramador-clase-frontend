@@ -6,6 +6,7 @@ import type { Vote } from '@/ia/useVoteStore'
 import { deserializeValue } from '@/io/deserialize'
 import { serialize } from '@/io/serialize'
 import { applyRemote, onStoreChange, useDiagramStore, type StoreChange } from '@/state/useDiagramStore'
+import type { ParticipanteLlamada } from '@/llamada/useLlamadaStore'
 import type { IncomingEphemeral, Participant } from '@/sync/presence'
 import { listenRoomChannels, roomClosed, roomDropped, roomJoined } from '@/sync/roomChannels'
 import { usePresenceStore } from '@/sync/usePresenceStore'
@@ -71,6 +72,8 @@ type UnirseRespuesta = {
    * command that undoes it never reached anyone. It is ours to apply.
    */
   reversion?: { type: string; payload: unknown } | null
+  /** Who is in the room's voice call right now. */
+  llamada?: ParticipanteLlamada[]
 }
 
 type SalioPayload = { idSocket: string; motivo?: 'salida' | 'desconexion' }
@@ -201,7 +204,7 @@ export function useCollaboration(idProyecto: string, enabled: boolean): Collabor
 
         usePresenceStore.getState().joined(socket.id ?? '', respuesta.participantes ?? [])
 
-        roomJoined(socket, respuesta.votacion ?? null, rejoining)
+        roomJoined(socket, respuesta.votacion ?? null, rejoining, respuesta.llamada ?? [])
         usePresenceStore.getState().setSender((message) => {
           if (!socket.connected) return
           // Only the cursor may be dropped under load: the next one replaces

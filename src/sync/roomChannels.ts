@@ -5,12 +5,20 @@ import { useAuthStore } from '@/auth/useAuthStore'
 import { loadLatest, useChatStore, type OutgoingMessage, type SendResult } from '@/chat/useChatStore'
 import { applyProposal, type ProposalAck } from '@/ia/proposal'
 import { useVoteStore, type Vote } from '@/ia/useVoteStore'
+import {
+  escucharLlamada,
+  esRespuestaDeLlamada,
+  salaCaida,
+  salaCerrada,
+  salaUnida,
+  type ParticipanteLlamada,
+} from '@/llamada/useLlamadaStore'
 import { loadVersions, useVersionStore } from '@/versions/useVersionStore'
 
 /**
  * What the room says besides the document and presence: the chat (CU-02,
- * CU-03), the AI's proposed changes and the vote on them (CU-04), and new
- * versions in the history (CU-05).
+ * CU-03), the AI's proposed changes and the vote on them (CU-04), new
+ * versions in the history (CU-05), and the group voice call with Jarvis.
  *
  * Kept apart from `useCollaboration`, which owns the connection and the
  * document; these only need a socket to talk through.
@@ -39,7 +47,10 @@ function ackOrFail<T extends { ok: boolean; message?: string }>(
 /** Registers the listeners once per socket. */
 export function listenRoomChannels(socket: Socket): void {
   socket.on('mensaje', (message: Mensaje) =>
-    useChatStore.getState().received(message, useAuthStore.getState().usuario?.idUsuario ?? null),
+    useChatStore.getState().received(message, useAuthStore.getState().usuario?.idUsuario ?? null, {
+      // Jarvis's answers play in the call, for everyone in it.
+      autoplay: !esRespuestaDeLlamada(message),
+    }),
   )
   socket.on('ia-escribiendo', ({ activo, respondeA }: { activo: boolean; respondeA: string }) =>
     useChatStore.getState().setAiTyping(respondeA, activo),
@@ -60,10 +71,18 @@ export function listenRoomChannels(socket: Socket): void {
 
   // CU-05: someone saved a version, the room made an automatic one, or a kept AI change.
   socket.on('version-creada', (version: VersionResumen) => useVersionStore.getState().received(version))
+
+  // The group voice call and Jarvis.
+  escucharLlamada(socket)
 }
 
 /** In the room (again): senders on, and whatever the room is voting on. */
-export function roomJoined(socket: Socket, vote: Vote | null, rejoining: boolean): void {
+export function roomJoined(
+  socket: Socket,
+  vote: Vote | null,
+  rejoining: boolean,
+  call: ParticipanteLlamada[] = [],
+): void {
   useChatStore
     .getState()
     .setSender((message: OutgoingMessage) =>
@@ -73,6 +92,7 @@ export function roomJoined(socket: Socket, vote: Vote | null, rejoining: boolean
     .getState()
     .setSender((payload) => ackOrFail(socket, 'votar', payload, 'El servidor no confirmó el voto.'))
   useVoteStore.getState().received(vote)
+  salaUnida(socket, call)
 
   // Back after a drop: whatever was said, or saved, meanwhile never reached us.
   if (rejoining) {
@@ -87,10 +107,12 @@ export function roomDropped(): void {
   useVoteStore.getState().setSender(null)
   // The "done" for an AI answer in progress may never arrive now.
   useChatStore.setState({ aiTyping: [] })
+  salaCaida()
 }
 
 /** Leaving the project: nothing of this room may show in the next one. */
 export function roomClosed(): void {
   useChatStore.getState().setSender(null)
   useVoteStore.getState().reset()
+  salaCerrada()
 }

@@ -69,7 +69,11 @@ export type ChatState = {
   reset: (idProyecto: string) => void
   setSender: (send: ChatState['send']) => void
   setVisible: (visible: boolean) => void
-  received: (message: Mensaje, selfId: string | null) => void
+  /**
+   * `autoplay: false`: an AI voice reply that plays somewhere else (the voice call),
+   * so its bubble must not play it too.
+   */
+  received: (message: Mensaje, selfId: string | null, options?: { autoplay?: boolean }) => void
   setAiTyping: (respondeA: string, active: boolean) => void
   setAiError: (respondeA: string, message: string) => void
   setTranscriptionError: (idMensaje: string, message: string) => void
@@ -112,7 +116,7 @@ export const useChatStore = create<ChatState>()((set) => ({
 
   setVisible: (visible) => set((state) => ({ visible, unread: visible ? 0 : state.unread })),
 
-  received: (message, selfId) =>
+  received: (message, selfId, options) =>
     set((state) => {
       if (message.idProyecto !== state.idProyecto) return {}
 
@@ -123,7 +127,8 @@ export const useChatStore = create<ChatState>()((set) => ({
         message.autor === 'IA' &&
         message.tieneAudio &&
         message.mencionA !== null &&
-        message.mencionA.idUsuario === selfId
+        message.mencionA.idUsuario === selfId &&
+        options?.autoplay !== false
 
       return {
         messages: insertMessage(state.messages, message),
@@ -254,8 +259,8 @@ async function deliver(idCliente: string): Promise<void> {
   }))
 }
 
-/** The current diagram, as the AI sees it (CU-02), for a question to @IA. */
-function diagramForAI(): { resumen: string; contenido: unknown } {
+/** The current diagram, as the AI sees it (CU-02), for a question to @IA (or to Jarvis in the call). */
+export function diagramForAI(): { resumen: string; contenido: unknown } {
   const doc = useDiagramStore.getState().doc
   return { resumen: resumirDiagrama(doc), contenido: serialize(doc) }
 }

@@ -13,6 +13,8 @@ import { Inspector } from '@/inspector/Inspector'
 import { Palette } from '@/palette/Palette'
 import { ExportBackendButton } from '@/ui/ExportBackendButton'
 import { InviteModal } from '@/ui/invitations/InviteModal'
+import { BotonLlamada } from '@/llamada/BotonLlamada'
+import { LlamadaFlotante } from '@/llamada/LlamadaFlotante'
 import { ANCHO_PLEGADO, PanelLateral } from '@/ui/PanelLateral'
 import { ParticipantList } from '@/sync/ParticipantList'
 import { SaveStatus } from '@/sync/SaveStatus'
@@ -122,7 +124,11 @@ function App({
             )}
 
             {(collaboration.status === 'connected' || collaboration.status === 'reconnecting') && (
-              <ParticipantList />
+              <>
+                <ParticipantList />
+                {/* The group voice call, with Jarvis inside. */}
+                <BotonLlamada />
+              </>
             )}
 
             <span className="h-4 w-px shrink-0 bg-slate-200" />
@@ -169,6 +175,8 @@ function App({
 
         <main className="relative min-w-0 overflow-hidden">
           <UmlCanvas />
+          {/* Over the canvas, so it stays in view whatever tab the right panel shows. */}
+          <LlamadaFlotante />
         </main>
 
         <PanelLateral

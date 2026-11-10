@@ -103,12 +103,15 @@ REMOTE
 # 4. Comprobar
 # ---------------------------------------------------------------------------
 log "Comprobando https://$APP_DOMAIN"
+RESPUESTA="$(mktemp)"
 for intento in $(seq 1 12); do
-  if curl -fsS --max-time 10 "https://$APP_DOMAIN" 2>/dev/null | grep -qi '<div id="root"'; then
+  # Sin pipe a grep: asi se ve el codigo HTTP o el error de curl de cada intento.
+  codigo="$(curl -sS --max-time 10 -o "$RESPUESTA" -w '%{http_code}' "https://$APP_DOMAIN/" 2>"$RESPUESTA.err" || true)"
+  if [ "$codigo" = "200" ] && grep -qi '<div id="root"' "$RESPUESTA"; then
     ok "la aplicacion responde en https://$APP_DOMAIN"
     exit 0
   fi
-  skip "intento $intento/12, reintento en 10s"
+  skip "intento $intento/12: HTTP ${codigo:-000} $(head -c 160 "$RESPUESTA.err" | tr '\n' ' ')- reintento en 10s"
   sleep 10
 done
 
