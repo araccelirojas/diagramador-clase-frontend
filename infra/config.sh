@@ -12,7 +12,7 @@ STACK="${STACK:-${PROJECT}-frontend}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 
 # Dominio unico del proyecto: la aplicacion en / y la API en /api.
-APP_DOMAIN="${APP_DOMAIN:-galflabs.tech}"
+APP_DOMAIN="${APP_DOMAIN:-}"  # lo genera infra/aws-up.sh (secreto APP_DOMAIN)
 
 # Ruta relativa a proposito. Al compartir origen con la API, el navegador
 # resuelve /api contra el mismo host desde el que cargo la pagina: no hay CORS,

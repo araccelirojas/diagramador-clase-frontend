@@ -24,6 +24,7 @@ CONSTRUIR=1
 if [ "${1:-}" = "--sin-build" ]; then CONSTRUIR=0; fi
 
 check_aws
+[ -n "$APP_DOMAIN" ] || die "falta APP_DOMAIN: es un secreto del repositorio (lo genera infra/aws-up.sh del backend)"
 need docker
 
 INSTANCE_ID="$(find_instance)"

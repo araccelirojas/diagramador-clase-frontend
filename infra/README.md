@@ -8,7 +8,7 @@ existe, este script te lo dira y no hara nada.
 ## Donde acaba el build
 
 ```
-              galflabs.tech
+              APP_DOMAIN
                     |
         +-----------v------------+   EC2, contenedor de Caddy
         |  /api/*       -> app   |
@@ -88,27 +88,23 @@ termine, antes del primer push aqui.
 
 ### Secretos (Settings > Secrets and variables > Actions > Secrets)
 
+Los cuatro, con sus valores, estan en la seccion FRONTEND de
+`infra/secretos-github.txt`, que genera `infra/aws-up.sh` en el repositorio
+del backend:
+
 | Secreto | Que es |
 |---|---|
 | `AWS_ACCESS_KEY_ID` | credenciales del usuario IAM de despliegue |
 | `AWS_SECRET_ACCESS_KEY` | idem |
+| `AWS_REGION` | region de la instancia |
+| `APP_DOMAIN` | dominio de la aplicacion (por defecto `<ip>.sslip.io`) |
 
-Es la misma access key que el repositorio del backend; la politica IAM esta
-documentada alli. El frontend no tiene mas secretos, y no debe tenerlos: todo
-lo que entra en el bundle es publico por definicion, lo lee cualquiera con el
-inspector del navegador. Las claves de verdad viven en el backend.
+Es la misma access key que el repositorio del backend. El frontend no tiene
+mas secretos de verdad, y no debe tenerlos: todo lo que entra en el bundle es
+publico, lo lee cualquiera con el inspector del navegador.
 
-### Variables (la pestana Variables, al lado de Secrets)
-
-Opcionales, todas tienen valor por defecto:
-
-| Variable | Por defecto |
-|---|---|
-| `AWS_REGION` | `us-east-1` |
-| `APP_DOMAIN` | `galflabs.tech` |
-| `VITE_API_URL` | `/api` |
-
-Si cambias `APP_DOMAIN`, cambialo tambien en el repositorio del backend.
+`VITE_API_URL` es una variable opcional (pestana Variables); por defecto
+`/api`, que es lo correcto con el frontend y la API en el mismo dominio.
 
 ## Cuando algo falla
 

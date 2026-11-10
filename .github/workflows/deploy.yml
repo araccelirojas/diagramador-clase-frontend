@@ -22,9 +22,11 @@ concurrency:
   group: deploy-frontend
   cancel-in-progress: false
 
+# Los valores salen de infra/secretos-github.txt, que genera el infra/aws-up.sh
+# del repositorio del backend.
 env:
-  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-  APP_DOMAIN: ${{ vars.APP_DOMAIN || 'galflabs.tech' }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
   # Ruta relativa: el frontend y la API comparten origen en la misma instancia.
   VITE_API_URL: ${{ vars.VITE_API_URL || '/api' }}
 
